@@ -42,11 +42,11 @@
   .pill.card { background:#fce8f1; color:#c0266f; }
 
   /* 할인 종류별 혜택 칩 슬라이더 */
-  .benefitwrap { position:relative; margin:8px 0 6px; }
-  .benefitrow { display:flex; gap:7px; overflow-x:auto; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; padding:1px 0 3px; }
+  .benefitwrap { position:relative; margin-left:auto; max-width:66%; min-width:0; }
+  .benefitrow { display:flex; gap:5px; overflow-x:auto; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; }
   .benefitrow::-webkit-scrollbar { display:none; }
   .benefitrow { scrollbar-width:none; }
-  .bchip { flex:none; scroll-snap-align:start; font-size:11.5px; font-weight:700; padding:5px 10px; border-radius:7px; white-space:nowrap; }
+  .bchip { flex:none; scroll-snap-align:start; font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:6px; white-space:nowrap; }
   .bchip.waiver { background:#e6edfc; color:#1c3f9e; }
   .bchip.half   { background:#e7edfb; color:#2050b5; }
   .bchip.fixed  { background:#eaf1fd; color:#2f5bbf; }
@@ -64,9 +64,9 @@
   .feechange .ar { color:#2050b5; font-weight:800; margin:0 3px; }
   .feecapt { font-size:11px; color:#999; margin-top:3px; }
   .feenet { display:none; font-size:11px; color:#4b5563; margin-top:6px; padding:5px 8px; border-radius:6px; background:#eef0f3; font-weight:600; }
-  .cashrow { margin:0 14px 14px; padding:13px 14px; border-radius:12px; background:linear-gradient(135deg,#2b57cc,#1f4fb4); display:flex; align-items:center; gap:8px; box-shadow:0 3px 8px rgba(32,80,181,.25); }
+  .cashrow { margin:0 14px 14px; padding:13px 14px; border-radius:12px; background:linear-gradient(135deg,#2b57cc,#1f4fb4); display:flex; align-items:center; gap:10px; box-shadow:0 3px 8px rgba(32,80,181,.25); }
+  .cashrow .r { font-size:22px; font-weight:800; color:#fff; }
   .cashrow .l { font-size:12px; color:#d7e3ff; font-weight:700; }
-  .cashrow .r { font-size:22px; font-weight:800; color:#fff; margin-left:auto; }
   .agentrow { display:flex; align-items:center; gap:8px; margin:0 14px 12px; }
   .agentrow .av { width:26px; height:26px; border-radius:50%; background:#ddd; flex:none; }
   .agentrow b { font-size:12.5px; }
@@ -148,19 +148,19 @@
   <div class="qcard">
     <div class="brand"><b>코웨이 아이콘2 냉온정</b></div>
     <div class="feewrap" id="feeTrigger">
-      <div class="lbl"><span>첫달 월요금</span></div>
-      <div class="benefitwrap" id="benefitWrap">
-        <div class="benefitrow" id="benefitRow"></div>
-        <div class="benefitfade" id="benefitFade"></div>
+      <div class="lbl"><span class="lbltxt">첫달 월요금</span>
+        <div class="benefitwrap" id="benefitWrap">
+          <div class="benefitrow" id="benefitRow"></div>
+          <div class="benefitfade" id="benefitFade"></div>
+        </div>
       </div>
-      <div class="benefithint" id="benefitHint">← 밀어서 전체 혜택 보기</div>
       <div class="feenum"><span class="now" id="feeNow">28,400원</span><span class="strike" id="feeStrike"></span></div>
       <div class="feechange" id="feeChange"></div>
       <div class="feechev">›</div>
     </div>
     <div class="cashrow">
-      <div class="l">현금지원금 · 지급보장</div>
       <div class="r">25만원</div>
+      <div class="l">현금지원금 · 지급보장</div>
     </div>
     <div class="agentrow">
       <div class="av"></div>
@@ -255,9 +255,8 @@ function renderBenefits(c){
   if(cardOn) chips += chipHtml({kind:'card', text:'−2,000원'});
   row.innerHTML = chips;
   document.getElementById('benefitWrap').style.display = chips ? 'block' : 'none';
-  // 칩이 넘치면(할인이 많으면) 슬라이드 안내·페이드 표시
+  // 칩이 넘치면(할인이 많으면) 오른쪽 페이드로 슬라이드 가능 표시
   const overflow = row.scrollWidth > row.clientWidth + 2;
-  document.getElementById('benefitHint').classList.toggle('show', !!chips && overflow);
   document.getElementById('benefitFade').classList.toggle('show', !!chips && overflow);
   row.scrollLeft = 0;
 }
