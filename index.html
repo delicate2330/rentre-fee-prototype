@@ -149,27 +149,7 @@
 <div class="modal-overlay" id="modalOverlay">
   <div class="sheet">
     <div class="shead"><b style="font-size:15px;">월 요금 상세</b><span class="x" id="modalClose">✕</span></div>
-    <div class="summary-card">
-      <div class="tag" id="sumTag">🎉 이 프로모션으로 절감되는 금액</div>
-      <div class="big" id="sumBig">0원 절감</div>
-      <div class="stats">
-        <div class="stat"><div class="k">기본가 대비</div><div class="v" id="sumPct">0%</div></div>
-        <div class="stat"><div class="k">월 평균 납부</div><div class="v" id="sumAvg">0원</div></div>
-        <div class="stat"><div class="k">총 납부예상</div><div class="v" id="sumTotal">0원</div></div>
-      </div>
-    </div>
-    <div class="prod-mini">
-      <div class="ic"></div>
-      <div><b>아이콘2 냉온정 정수기</b><div class="sub">코웨이 · CHP-7211N · 셀프관리 · 84개월</div></div>
-    </div>
-    <div class="chiprow" id="chipRow"></div>
     <div id="tabContent"></div>
-    <div style="margin-top:14px;">
-      <div class="brow"><span class="k">▾ 프로모션 최저 납부 금액</span><span class="v" id="rowMin">0원</span></div>
-      <div class="brow"><span class="k">— 월 평균 납부 금액</span><span class="v" id="rowAvg">0원</span></div>
-      <div class="brow"><span class="k">▴ 정상가 (기본 월 렌탈료)</span><span class="v strike" id="rowBase">28,400원</span></div>
-    </div>
-    <div id="breakList"></div>
   </div>
 </div>
 
@@ -294,47 +274,8 @@ function setTab(tab){
   document.getElementById('tabContent').innerHTML = tabRenderers[tab](segs);
 }
 
-function renderBreakList(segs){
-  const wrap = document.getElementById('breakList');
-  let html=''; let start=1;
-  segs.forEach((s,i)=>{
-    const end = start+s.months-1;
-    const isWaiver = s.type==='waiver';
-    html += '<div class="trow'+(isWaiver?' waiver':'')+'">';
-    html += '<div class="num">'+(i+1)+'</div>';
-    html += '<div class="body"><b>'+start+(s.months>1?'~'+end:'')+'회차 ('+s.months+'개월)</b><div class="sub">'+(isWaiver?'월요금 면제':'적용가')+'</div></div>';
-    html += '<div class="amt">'+fmt(s.fee)+'원/월<span class="sc">소계 '+fmt(s.fee*s.months)+'원</span></div>';
-    html += '</div>';
-    start = end+1;
-  });
-  wrap.innerHTML = html;
-}
-
 function openModalForCase(id){
-  const c = casesData[id];
-  const segs = activeSegs(c);
-  const stats = computeStats(segs);
-
-  document.getElementById('chipRow').innerHTML = c.badges.map(badgeHtml).join('') + (cardOn?'<span class="pill card">카드할인 -2,000원</span>':'');
-
-  if(stats.diff>=0){
-    document.getElementById('sumTag').textContent = '🎉 이 프로모션으로 절감되는 금액';
-    document.getElementById('sumBig').textContent = fmt(stats.diff)+'원 절감';
-    document.getElementById('sumPct').textContent = '-'+stats.pct+'%';
-  } else {
-    document.getElementById('sumTag').textContent = '⚠️ 이 프로모션으로 추가되는 금액';
-    document.getElementById('sumBig').textContent = fmt(Math.abs(stats.diff))+'원 더 납부';
-    document.getElementById('sumPct').textContent = '+'+Math.abs(stats.pct)+'%';
-  }
-  document.getElementById('sumAvg').textContent = fmt(stats.avg)+'원';
-  document.getElementById('sumTotal').textContent = fmt(stats.totalPaid)+'원';
-
-  document.getElementById('rowMin').textContent = fmt(stats.minFee)+'원';
-  document.getElementById('rowAvg').textContent = fmt(stats.avg)+'원';
-  document.getElementById('rowBase').textContent = fmt(BASE)+'원';
-
   setTab(currentTab);
-  renderBreakList(segs);
 
   document.getElementById('modalOverlay').classList.add('show');
 }
