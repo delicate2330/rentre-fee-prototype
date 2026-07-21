@@ -49,7 +49,8 @@
   .agentrow .av { width:26px; height:26px; border-radius:50%; background:#ddd; flex:none; }
   .agentrow b { font-size:12.5px; }
   .agentrow .star { font-size:11px; color:#f5a623; margin-left:4px; }
-  .chatbtn { margin:0 14px 14px; padding:11px; text-align:center; border:1px solid #2050b5; color:#2050b5; border-radius:10px; font-size:13px; font-weight:700; }
+  .chatbtn { margin:0 14px 14px; padding:13px; text-align:center; background:#2050b5; border:1px solid #2050b5; color:#fff; border-radius:10px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 2px 6px rgba(32,80,181,.28); }
+  .chatbtn:active { background:#1a44a0; }
   .caseSection { padding:0 16px 30px; }
   .caseSection h2 { font-size:14px; font-weight:800; margin-bottom:10px; }
   .caseSection .hint { font-size:11.5px; color:#999; margin-bottom:12px; }
@@ -157,11 +158,6 @@
         <div class="stat"><div class="k">총 납부예상</div><div class="v" id="sumTotal">0원</div></div>
       </div>
     </div>
-    <div class="tabs">
-      <div class="tabbtn active" data-tab="timeline">📊 타임라인</div>
-      <div class="tabbtn" data-tab="table">▤ 표</div>
-      <div class="tabbtn" data-tab="graph">📈 가격 그래프</div>
-    </div>
     <div class="prod-mini">
       <div class="ic"></div>
       <div><b>아이콘2 냉온정 정수기</b><div class="sub">코웨이 · CHP-7211N · 셀프관리 · 84개월</div></div>
@@ -193,7 +189,7 @@ const casesData = [
 
 let currentCase = 0;
 let cardOn = false;
-let currentTab = 'timeline';
+let currentTab = 'graph';
 
 function fmt(n){ return n.toLocaleString('ko-KR'); }
 
@@ -293,7 +289,6 @@ const tabRenderers = { timeline: renderTimeline, table: renderTable, graph: rend
 
 function setTab(tab){
   currentTab = tab;
-  document.querySelectorAll('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
   const c = casesData[currentCase];
   const segs = activeSegs(c);
   document.getElementById('tabContent').innerHTML = tabRenderers[tab](segs);
@@ -347,7 +342,6 @@ function openModalForCase(id){
 document.getElementById('feeTrigger').addEventListener('click', ()=>openModalForCase(currentCase));
 document.getElementById('modalClose').addEventListener('click', ()=>document.getElementById('modalOverlay').classList.remove('show'));
 document.getElementById('modalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='modalOverlay') e.currentTarget.classList.remove('show'); });
-document.querySelectorAll('.tabbtn').forEach(b=>b.addEventListener('click', ()=>setTab(b.dataset.tab)));
 document.getElementById('cardSwitch').addEventListener('click', function(){
   cardOn = !cardOn;
   this.classList.toggle('on', cardOn);
