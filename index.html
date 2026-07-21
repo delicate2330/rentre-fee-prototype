@@ -23,6 +23,14 @@
   .switch .knob { position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#fff; transition:.2s; box-shadow:0 1px 2px rgba(0,0,0,.3); }
   .switch.on .knob { left:18px; }
 
+  /* 케이스 버튼 */
+  .caselabel { background:#fff; font-size:11.5px; font-weight:700; color:#6b7688; padding:12px 16px 0; }
+  .caseRow { display:flex; gap:6px; padding:9px 16px 12px; overflow-x:auto; background:#fff; border-bottom:8px solid #f2f3f5; }
+  .caseRow::-webkit-scrollbar { display:none; }
+  .caseRow { scrollbar-width:none; }
+  .caseBtn { flex:none; font-size:11.5px; font-weight:700; padding:7px 11px; border-radius:8px; border:1px solid #dfe2e7; background:#fff; color:#666; white-space:nowrap; cursor:pointer; }
+  .caseBtn.active { background:#2050b5; color:#fff; border-color:#2050b5; }
+
   /* 견적 카드 */
   #list { padding:12px 12px 0; }
   .ocard { background:#fff; border:1px solid #eaecef; border-radius:14px; padding:13px 14px; margin-bottom:12px; }
@@ -138,6 +146,9 @@
     <div class="opt"><span>제휴카드</span><div class="switch on" data-opt="card"><div class="knob"></div></div></div>
     <div class="opt"><span>휴대폰 결합</span><div class="switch" data-opt="phone"><div class="knob"></div></div></div>
   </div>
+
+  <div class="caselabel">🔎 케이스별 첫달요금 (맨 위 카드에 반영)</div>
+  <div class="caseRow" id="caseRow"></div>
 
   <div id="list"></div>
 </div>
@@ -262,7 +273,37 @@ function cardHtml(o,i){
     + '</div>';
 }
 
-document.getElementById('list').innerHTML = offers.map(cardHtml).join('');
+// 맨 위(대표) 카드에 반영되는 케이스별 첫달요금/그래프
+const cases = [
+  {name:'기본', fee:'28,400', tags:[], desc:'할인 없는 정상가 케이스예요.', segs:[{m:36,f:28400,t:'normal'}]},
+  {name:'면제', fee:'0', tags:['월요금 면제'], desc:'첫 3개월 월요금이 면제되고, 이후 정상가가 적용돼요.', segs:[{m:3,f:0,t:'waiver'},{m:33,f:28400,t:'normal'}]},
+  {name:'반값', fee:'14,200', tags:['반값할인'], desc:'첫 12개월은 반값(50%)으로 이용하고, 이후 정상가가 적용돼요.', segs:[{m:12,f:14200,t:'half'},{m:24,f:28400,t:'normal'}]},
+  {name:'정액할인', fee:'26,900', tags:['정액할인'], desc:'첫 12개월간 매월 1,500원을 할인받는 정액할인이에요.', segs:[{m:12,f:26900,t:'fixed'},{m:24,f:28400,t:'normal'}]},
+  {name:'추가요금', fee:'29,400', tags:['추가요금'], desc:'조리수기 등 옵션으로 매월 1,000원이 추가되는 케이스예요.', segs:[{m:36,f:29400,t:'sur'}]},
+  {name:'면제+반값', fee:'0', tags:['월요금 면제','반값할인'], desc:'첫 3개월 면제 → 이후 12개월 반값 → 정상가 순으로 적용돼요.', segs:[{m:3,f:0,t:'waiver'},{m:12,f:14200,t:'half'},{m:21,f:28400,t:'normal'}]},
+  {name:'정액+추가', fee:'27,900', tags:['정액할인','추가요금'], desc:'추가요금(+1,000)과 정액할인(−1,500)이 함께 적용돼 첫 12개월 순 −500원이에요.', segs:[{m:12,f:27900,t:'fixed'},{m:24,f:29400,t:'sur'}]},
+  {name:'면제+반값+정액', fee:'0', tags:['월요금 면제','반값할인','정액할인'], desc:'면제 → 반값 → 정액할인 → 정상가 순으로 단계 적용돼요.', segs:[{m:3,f:0,t:'waiver'},{m:12,f:14200,t:'half'},{m:12,f:26900,t:'fixed'},{m:9,f:28400,t:'normal'}]},
+  {name:'면제+반값+추가', fee:'0', tags:['월요금 면제','반값할인','추가요금'], desc:'면제 → 반값 순으로 할인되며 추가요금이 함께 반영돼요.', segs:[{m:3,f:0,t:'waiver'},{m:12,f:15200,t:'half'},{m:21,f:29400,t:'sur'}]},
+  {name:'풀조합', fee:'0', tags:['월요금 면제','반값할인','정액할인','추가요금'], desc:'면제·반값·정액할인·추가요금이 모두 적용되는 풀조합이에요.', segs:[{m:3,f:0,t:'waiver'},{m:12,f:15200,t:'half'},{m:12,f:27900,t:'fixed'},{m:9,f:29400,t:'sur'}]}
+];
+let currentCase = 0;
+
+function renderList(){
+  document.getElementById('list').innerHTML = offers.map(cardHtml).join('');
+}
+function applyCase(ci){
+  currentCase = ci;
+  const c = cases[ci];
+  Object.assign(offers[0], { fee:c.fee, tags:c.tags, desc:c.desc, segs:c.segs });
+  renderList();
+  document.querySelectorAll('#caseRow .caseBtn').forEach((b,idx)=>b.classList.toggle('active', idx===ci));
+}
+function renderCaseButtons(){
+  document.getElementById('caseRow').innerHTML = cases.map((c,idx)=>'<div class="caseBtn'+(idx===currentCase?' active':'')+'">'+c.name+'</div>').join('');
+  document.querySelectorAll('#caseRow .caseBtn').forEach((b,idx)=>b.addEventListener('click', ()=>applyCase(idx)));
+}
+renderCaseButtons();
+applyCase(0);
 
 document.querySelectorAll('.switch').forEach(sw=>{
   sw.addEventListener('click', ()=> sw.classList.toggle('on'));
