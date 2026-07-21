@@ -67,7 +67,8 @@
   .agentrow { display:flex; align-items:center; gap:8px; margin:0 14px 12px; }
   .agentrow .av { width:26px; height:26px; border-radius:50%; background:#ddd; flex:none; }
   .agentrow b { font-size:12.5px; }
-  .agentrow .star { font-size:11px; color:#f5a623; margin-left:4px; }
+  .agentrow .verified { font-size:10px; font-weight:700; color:#2050b5; background:#eaf0fd; padding:2px 6px; border-radius:5px; margin-left:6px; }
+  .agentrow .star { font-size:11px; color:#f5a623; margin-left:6px; }
   .chatbtn { margin:0 14px 14px; padding:13px; text-align:center; background:#2050b5; border:1px solid #2050b5; color:#fff; border-radius:10px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 2px 6px rgba(32,80,181,.28); }
   .chatbtn:active { background:#1a44a0; }
   .caseSection { padding:0 16px 30px; }
@@ -142,7 +143,7 @@
   <div class="caseRow" id="caseRow"></div>
 
   <div class="qcard">
-    <div class="brand"><b>코웨이 아이콘2 냉온정</b><span>브랜드인증</span></div>
+    <div class="brand"><b>코웨이 아이콘2 냉온정</b></div>
     <div class="feewrap" id="feeTrigger">
       <div class="lbl"><span>첫달 월요금</span><span class="detailbtn">자세히 보기<span class="chev">›</span></span></div>
       <div class="benefitwrap" id="benefitWrap">
@@ -158,15 +159,11 @@
     </div>
     <div class="agentrow">
       <div class="av"></div>
-      <b>김상식 팀장</b><span class="star">★ 5.0</span>
+      <b>김상식 팀장</b><span class="verified">✓ 판매자 인증</span><span class="star">★ 5.0</span>
     </div>
     <div class="chatbtn">채팅상담하기</div>
   </div>
 
-  <div class="caseSection">
-    <h2>프로모션 케이스별 표기 예시</h2>
-    <div class="hint">위 CASE 버튼을 누르면 견적서 카드와 상세 그래프가 즉시 바뀝니다.</div>
-  </div>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
