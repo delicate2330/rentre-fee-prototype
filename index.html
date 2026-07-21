@@ -38,10 +38,30 @@
   .pill.waiver { background:#fef3e2; color:#b45309; }
   .pill.sur { background:#eceef1; color:#4b5563; }
   .pill.card { background:#fce8f1; color:#c0266f; }
+
+  /* 할인 종류별 혜택 칩 슬라이더 */
+  .benefitwrap { position:relative; margin:8px 0 6px; }
+  .benefitrow { display:flex; gap:7px; overflow-x:auto; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; padding:1px 0 3px; }
+  .benefitrow::-webkit-scrollbar { display:none; }
+  .benefitrow { scrollbar-width:none; }
+  .bchip { flex:none; scroll-snap-align:start; display:flex; align-items:center; gap:7px; padding:8px 11px 8px 9px; border-radius:11px; border:1.5px solid; }
+  .bchip .bic { font-size:16px; line-height:1; }
+  .bchip .btx b { font-size:12px; font-weight:800; display:block; line-height:1.2; }
+  .bchip .btx i { font-size:10.5px; font-style:normal; display:block; opacity:.9; margin-top:1px; }
+  .bchip.waiver { background:#fff5e9; border-color:#f6c88a; color:#b45309; }
+  .bchip.half   { background:#eaf0fd; border-color:#a9c1f2; color:#2050b5; }
+  .bchip.fixed  { background:#e5f5f1; border-color:#8fd0c2; color:#0f766e; }
+  .bchip.sur    { background:#eef0f3; border-color:#c7ccd4; color:#4b5563; }
+  .bchip.card   { background:#fdeaf2; border-color:#f2b0cf; color:#c0266f; }
+  .benefithint { display:none; font-size:10.5px; color:#aaa; margin-top:2px; text-align:right; }
+  .benefithint.show { display:block; }
+  .benefitfade { display:none; position:absolute; top:0; right:0; width:28px; height:100%; pointer-events:none; background:linear-gradient(90deg,rgba(255,255,255,0),#fff); }
+  .benefitfade.show { display:block; }
   .feenum { display:flex; align-items:baseline; gap:6px; }
   .feenum .now { font-size:23px; font-weight:800; color:#1a1a1a; }
   .feenum .strike { font-size:13px; color:#b6bac1; text-decoration:line-through; }
   .feecapt { font-size:11px; color:#999; margin-top:3px; }
+  .feenet { display:none; font-size:11px; color:#4b5563; margin-top:6px; padding:5px 8px; border-radius:6px; background:#eef0f3; font-weight:600; }
   .cashrow { margin:0 14px 14px; padding:12px; border-radius:12px; background:#fff7ec; display:flex; flex-direction:column; align-items:flex-start; }
   .cashrow .l { font-size:11.5px; color:#c2760a; font-weight:600; }
   .cashrow .r { font-size:23px; font-weight:800; color:#e2660c; margin-top:5px; }
@@ -125,9 +145,14 @@
     <div class="brand"><b>코웨이 아이콘2 냉온정</b><span>브랜드인증</span></div>
     <div class="feewrap" id="feeTrigger">
       <div class="lbl">월 요금 <span class="arrow">▸ 자세히</span></div>
-      <div class="pillrow" id="pillRow"></div>
+      <div class="benefitwrap" id="benefitWrap">
+        <div class="benefitrow" id="benefitRow"></div>
+        <div class="benefitfade" id="benefitFade"></div>
+      </div>
+      <div class="benefithint" id="benefitHint">← 밀어서 전체 혜택 보기</div>
       <div class="feenum"><span class="now" id="feeNow">28,400원</span><span class="strike" id="feeStrike"></span></div>
       <div class="feecapt" id="feeCapt">정상가</div>
+      <div class="feenet" id="feeNet"></div>
     </div>
     <div class="cashrow">
       <div class="l">현금지원금 · 지급보장</div>
@@ -157,15 +182,32 @@
 const BASE = 28400;
 const TOTAL_MONTHS = 84;
 
+// 규칙: 같은 종류 중복 불가(면제+면제, 반값+반값 ✕). 서로 다른 종류는 기간을 나눠 자유 조합.
+//       상쇄(±)는 정액끼리만(정액할인 − vs 추가요금 +). 정률(면제/반값)과 정액은 상쇄가 아니라 공존(정률→정액 순).
+// 혜택 종류(kind): waiver 월요금면제 / half 반값 / fixed 정액할인 / sur 추가요금
+// 예시값: BASE 28,400 / 면제 3개월 / 반값 12개월(14,200) / 정액할인 −1,500원 12개월 / 추가요금 조리수기 +1,000원
 const casesData = [
-  { id:0, name:'CASE0 기본', badges:[], segs:[{months:84,fee:28400,type:'normal',label:'전체 기간'}], capt:'정상가', strike:null },
-  { id:1, name:'CASE1 월요금면제', badges:[{type:'waiver',text:'3개월 면제'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:81,fee:28400,type:'normal',label:'4~84개월'}], capt:'4개월부터 28,400원', strike:null },
-  { id:2, name:'CASE2 반값할인', badges:[{type:'discount',text:'반값할인 12개월'}], segs:[{months:12,fee:14200,type:'discount',label:'1~12개월'},{months:72,fee:28400,type:'normal',label:'13~84개월'}], capt:'13개월부터 28,400원', strike:28400 },
-  { id:3, name:'CASE3 정액할인', badges:[{type:'discount',text:'정액할인(총 1만원)'}], segs:[{months:12,fee:27570,type:'discount',label:'1~12개월'},{months:72,fee:28400,type:'normal',label:'13~84개월'}], capt:'13개월부터 28,400원', strike:28400 },
-  { id:4, name:'CASE4 추가요금', badges:[{type:'sur',text:'조리수기 +1,000원'}], segs:[{months:84,fee:29400,type:'sur',label:'전체 기간'}], capt:'조리수기 포함가', strike:null },
-  { id:5, name:'CASE5 반값+할증', badges:[{type:'discount',text:'반값할인 3개월'},{type:'sur',text:'조리수기 +1,000원'}], segs:[{months:3,fee:15200,type:'discount',label:'1~3개월'},{months:81,fee:29400,type:'sur',label:'4~84개월'}], capt:'4개월부터 29,400원', strike:28400 },
-  { id:6, name:'CASE6 정액+할증', badges:[{type:'discount',text:'정액할인 12개월'},{type:'sur',text:'조리수기 +1,000원'}], segs:[{months:12,fee:28570,type:'discount',label:'1~12개월'},{months:72,fee:29400,type:'sur',label:'13~84개월'}], capt:'13개월부터 29,400원', strike:28400 }
+  { id:0, name:'기본', badges:[], segs:[{months:84,fee:28400,type:'normal',label:'전체 기간'}], capt:'정상가', strike:null },
+  { id:1, name:'면제', badges:[{kind:'waiver',text:'3개월 0원'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:81,fee:28400,type:'normal',label:'4~84개월'}], capt:'4개월부터 28,400원', strike:null },
+  { id:2, name:'반값', badges:[{kind:'half',text:'12개월 50%'}], segs:[{months:12,fee:14200,type:'half',label:'1~12개월'},{months:72,fee:28400,type:'normal',label:'13~84개월'}], capt:'13개월부터 28,400원', strike:28400 },
+  { id:3, name:'정액할인', badges:[{kind:'fixed',text:'−1,500원 12개월'}], segs:[{months:12,fee:26900,type:'fixed',label:'1~12개월'},{months:72,fee:28400,type:'normal',label:'13~84개월'}], capt:'13개월부터 28,400원', strike:28400 },
+  { id:4, name:'추가요금', badges:[{kind:'sur',text:'조리수기 +1,000원'}], segs:[{months:84,fee:29400,type:'sur',label:'전체 기간'}], capt:'조리수기 포함가', strike:null },
+  { id:5, name:'면제+반값', badges:[{kind:'waiver',text:'3개월 0원'},{kind:'half',text:'12개월 50%'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:14200,type:'half',label:'4~15개월'},{months:69,fee:28400,type:'normal',label:'16~84개월'}], capt:'16개월부터 28,400원', strike:28400 },
+  { id:6, name:'정액할인+추가요금', badges:[{kind:'fixed',text:'−1,500원 12개월'},{kind:'sur',text:'조리수기 +1,000원'}], segs:[{months:12,fee:27900,type:'fixed',label:'1~12개월'},{months:72,fee:29400,type:'sur',label:'13~84개월'}], capt:'13개월부터 29,400원', strike:28400, netNote:'조리수기 +1,000 − 정액할인 1,500 = 순 −500원/월 (1~12개월)' },
+  { id:7, name:'면제+반값+정액할인', badges:[{kind:'waiver',text:'3개월 0원'},{kind:'half',text:'12개월 50%'},{kind:'fixed',text:'−1,500원 12개월'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:14200,type:'half',label:'4~15개월'},{months:12,fee:26900,type:'fixed',label:'16~27개월'},{months:57,fee:28400,type:'normal',label:'28~84개월'}], capt:'28개월부터 28,400원', strike:28400 },
+  { id:8, name:'면제+반값+추가요금', badges:[{kind:'waiver',text:'3개월 0원'},{kind:'half',text:'12개월 50%'},{kind:'sur',text:'조리수기 +1,000원'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:15200,type:'half',label:'4~15개월'},{months:69,fee:29400,type:'sur',label:'16~84개월'}], capt:'16개월부터 29,400원', strike:28400 },
+  { id:9, name:'면제+반값+정액할인+추가요금', badges:[{kind:'waiver',text:'3개월 0원'},{kind:'half',text:'12개월 50%'},{kind:'fixed',text:'−1,500원 12개월'},{kind:'sur',text:'조리수기 +1,000원'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:15200,type:'half',label:'4~15개월'},{months:12,fee:27900,type:'fixed',label:'16~27개월'},{months:57,fee:29400,type:'sur',label:'28~84개월'}], capt:'28개월부터 29,400원', strike:28400, netNote:'16~27개월: 조리수기 +1,000 − 정액할인 1,500 = 순 −500원/월' }
 ];
+
+// 혜택 종류별 표시(아이콘·이름) — 각 할인별로 색은 CSS .bchip.<kind> 로 구분
+const KIND = {
+  waiver: { icon:'🎁', label:'월요금 면제' },
+  half:   { icon:'🏷️', label:'반값할인' },
+  fixed:  { icon:'🔻', label:'정액할인' },
+  sur:    { icon:'➕', label:'추가요금' },
+  card:   { icon:'💳', label:'카드할인' }
+};
+const TYPE_COLOR = { normal:'#94a3b8', half:'#2050b5', fixed:'#0f766e', waiver:'#e2660c', sur:'#4b5563' };
 
 let currentCase = 0;
 let cardOn = false;
@@ -191,7 +233,23 @@ function computeStats(segs){
   return { totalPaid, diff, pct, avg, minFee };
 }
 
-function badgeHtml(b){ return '<span class="pill '+b.type+'">'+b.text+'</span>'; }
+function chipHtml(b){
+  const k = KIND[b.kind] || {icon:'', label:b.kind};
+  return '<div class="bchip '+b.kind+'"><span class="bic">'+k.icon+'</span>'
+       + '<span class="btx"><b>'+k.label+'</b><i>'+b.text+'</i></span></div>';
+}
+
+function renderBenefits(c){
+  const row = document.getElementById('benefitRow');
+  let chips = c.badges.map(chipHtml).join('');
+  if(cardOn) chips += chipHtml({kind:'card', text:'-2,000원'});
+  row.innerHTML = chips || '<div class="bchip half"><span class="bic">💧</span><span class="btx"><b>정상가</b><i>적용 혜택 없음</i></span></div>';
+  // 칩이 넘치면(할인이 많으면) 슬라이드 안내·페이드 표시
+  const overflow = row.scrollWidth > row.clientWidth + 2;
+  document.getElementById('benefitHint').classList.toggle('show', overflow);
+  document.getElementById('benefitFade').classList.toggle('show', overflow);
+  row.scrollLeft = 0;
+}
 
 function renderCaseButtons(){
   const row = document.getElementById('caseRow');
@@ -207,10 +265,13 @@ function applyCase(id){
   const segs = activeSegs(c);
   document.querySelectorAll('.caseBtn').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.case)===id));
 
-  document.getElementById('pillRow').innerHTML = c.badges.map(badgeHtml).join('') + (cardOn?'<span class="pill card">카드할인 -2,000원</span>':'');
+  renderBenefits(c);
   document.getElementById('feeNow').textContent = fmt(segs[0].fee)+'원';
   document.getElementById('feeStrike').textContent = (c.strike && segs[0].fee!==c.strike) ? fmt(c.strike)+'원' : '';
   document.getElementById('feeCapt').textContent = c.capt;
+  const netEl = document.getElementById('feeNet');
+  if(c.netNote){ netEl.textContent = c.netNote; netEl.style.display='block'; }
+  else { netEl.style.display='none'; }
 
   if(document.getElementById('modalOverlay').classList.contains('show')){
     openModalForCase(id);
@@ -218,11 +279,10 @@ function applyCase(id){
 }
 
 function renderTimeline(segs){
-  const colorOf = {normal:'#94a3b8', discount:'#2050b5', waiver:'#e2660c', sur:'#4b5563'};
   let html = '<div class="timeline-track">';
   segs.forEach(s=>{
     const w = Math.max(8, Math.round(s.months/TOTAL_MONTHS*100));
-    html += '<div class="tl-seg"><div class="tl-bar" style="width:'+w+'%;background:'+colorOf[s.type]+';">'+s.label+' · '+fmt(s.fee)+'원</div></div>';
+    html += '<div class="tl-seg"><div class="tl-bar" style="width:'+w+'%;background:'+(TYPE_COLOR[s.type]||'#94a3b8')+';">'+s.label+' · '+fmt(s.fee)+'원</div></div>';
   });
   html += '</div>';
   return html;
@@ -255,7 +315,7 @@ function renderGraph(segs){
   svg += '<line x1="'+pad+'" y1="'+baseY+'" x2="'+(w-pad)+'" y2="'+baseY+'" stroke="#f3b6c9" stroke-dasharray="4,3" stroke-width="1"/>';
   svg += '<path d="'+path+'" fill="none" stroke="#2050b5" stroke-width="2.5"/>';
   points.forEach(p=>{
-    const col = p.type==='waiver' ? '#e2660c' : (p.type==='sur' ? '#4b5563' : '#2050b5');
+    const col = TYPE_COLOR[p.type] || '#2050b5';
     svg += '<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="'+col+'"/>';
     svg += '<text x="'+p.x+'" y="'+(p.y-8)+'" font-size="9.5" fill="'+col+'" font-weight="700">'+p.label+'</text>';
   });
