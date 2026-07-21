@@ -30,8 +30,9 @@
   .qcard .brand span { font-size:10.5px; color:#2050b5; font-weight:700; background:#eaf0fd; padding:3px 6px; border-radius:5px; }
   .feewrap { margin:10px 14px; padding:12px; border-radius:12px; background:#f7f8fa; cursor:pointer; position:relative; }
   .feewrap:active { background:#eef0f3; }
-  .feewrap .lbl { font-size:11.5px; color:#888; display:flex; align-items:center; gap:4px; }
-  .feewrap .lbl .arrow { font-size:10px; color:#aaa; }
+  .feewrap { border:1px solid #e5e7eb; }
+  .feewrap .lbl { font-size:12px; color:#555; font-weight:600; display:flex; align-items:center; gap:4px; }
+  .feewrap .lbl .detailbtn { margin-left:auto; font-size:11px; font-weight:700; color:#2050b5; background:#eaf0fd; padding:4px 10px; border-radius:20px; }
   .pillrow { display:flex; gap:5px; margin:6px 0 4px; flex-wrap:wrap; }
   .pill { font-size:10.5px; font-weight:700; padding:3px 7px; border-radius:6px; }
   .pill.discount { background:#e7edfb; color:#2050b5; }
@@ -142,14 +143,13 @@
   <div class="qcard">
     <div class="brand"><b>코웨이 아이콘2 냉온정</b><span>브랜드인증</span></div>
     <div class="feewrap" id="feeTrigger">
-      <div class="lbl">월 요금 <span class="arrow">▸ 자세히</span></div>
+      <div class="lbl"><span>첫달 월요금</span><span class="detailbtn">자세히 보기 ›</span></div>
       <div class="benefitwrap" id="benefitWrap">
         <div class="benefitrow" id="benefitRow"></div>
         <div class="benefitfade" id="benefitFade"></div>
       </div>
       <div class="benefithint" id="benefitHint">← 밀어서 전체 혜택 보기</div>
       <div class="feenum"><span class="now" id="feeNow">28,400원</span><span class="strike" id="feeStrike"></span></div>
-      <div class="feecapt" id="feeCapt">정상가</div>
       <div class="feenet" id="feeNet"></div>
     </div>
     <div class="cashrow">
@@ -267,7 +267,6 @@ function applyCase(id){
   renderBenefits(c);
   document.getElementById('feeNow').textContent = fmt(segs[0].fee)+'원';
   document.getElementById('feeStrike').textContent = (c.strike && segs[0].fee!==c.strike) ? fmt(c.strike)+'원' : '';
-  document.getElementById('feeCapt').textContent = c.capt;
   const netEl = document.getElementById('feeNet');
   if(c.netNote){ netEl.textContent = c.netNote; netEl.style.display='block'; }
   else { netEl.style.display='none'; }
