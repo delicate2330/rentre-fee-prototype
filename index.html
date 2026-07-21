@@ -42,9 +42,9 @@
   .feenum .now { font-size:23px; font-weight:800; color:#1a1a1a; }
   .feenum .strike { font-size:13px; color:#b6bac1; text-decoration:line-through; }
   .feecapt { font-size:11px; color:#999; margin-top:3px; }
-  .cashrow { margin:0 14px 14px; padding:12px; border-radius:12px; background:#fff7ec; display:flex; justify-content:space-between; align-items:center; }
+  .cashrow { margin:0 14px 14px; padding:12px; border-radius:12px; background:#fff7ec; display:flex; flex-direction:column; align-items:flex-start; }
   .cashrow .l { font-size:11.5px; color:#c2760a; font-weight:600; }
-  .cashrow .r { font-size:17px; font-weight:800; color:#e2660c; }
+  .cashrow .r { font-size:23px; font-weight:800; color:#e2660c; margin-top:5px; }
   .agentrow { display:flex; align-items:center; gap:8px; margin:0 14px 12px; }
   .agentrow .av { width:26px; height:26px; border-radius:50%; background:#ddd; flex:none; }
   .agentrow b { font-size:12.5px; }
@@ -233,8 +233,7 @@ function applyCase(id){
 
   document.getElementById('pillRow').innerHTML = c.badges.map(badgeHtml).join('') + (cardOn?'<span class="pill card">카드할인 -2,000원</span>':'');
   document.getElementById('feeNow').textContent = fmt(segs[0].fee)+'원';
-  const strikeVal = cardOn ? c.strike : c.strike;
-  document.getElementById('feeStrike').textContent = (c.strike && segs[0].fee!==c.strike) ? fmt(c.strike)+'원' : (cardOn && segs[0].fee!==BASE ? '' : '');
+  document.getElementById('feeStrike').textContent = (c.strike && segs[0].fee!==c.strike) ? fmt(c.strike)+'원' : '';
   document.getElementById('feeCapt').textContent = c.capt;
 
   if(document.getElementById('modalOverlay').classList.contains('show')){
