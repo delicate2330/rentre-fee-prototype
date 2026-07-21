@@ -3,132 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>견적서 카드 — 할인/할증 케이스별 표기</title>
+<title>견적 비교 리스트 — 렌트리</title>
 <style>
-  * { box-sizing: border-box; margin:0; padding:0; }
-  body { background:#f2f3f5; font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif; display:flex; justify-content:center; padding:24px 0 60px; }
-  .frame { width:390px; background:#fff; min-height:100vh; position:relative; }
-  .topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid #eee; }
-  .topbar h1 { font-size:15px; font-weight:700; }
-  .topbar .sub { font-size:11px; color:#999; margin-top:2px; }
-  .noticebar { background:#eef2ff; color:#3b4ed6; font-size:12px; padding:10px 16px; }
-  .prodrow { display:flex; gap:10px; padding:14px 16px; border-bottom:8px solid #f2f3f5; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#f2f3f5; font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif; display:flex; justify-content:center; padding:0 0 40px; color:#1a1a1a; }
+  .frame { width:390px; background:#f2f3f5; min-height:100vh; }
+
+  /* 상단 상품 헤더 */
+  .prodrow { display:flex; gap:10px; padding:14px 16px; background:#fff; border-bottom:1px solid #eee; }
   .prodrow .thumb { width:44px; height:44px; border-radius:10px; background:#e8f0fe; flex:none; }
   .prodrow .info b { font-size:13px; }
-  .prodrow .info div { font-size:12px; color:#888; margin-top:2px; }
-  .cardtoggle { display:flex; align-items:center; gap:8px; padding:12px 16px; font-size:13px; color:#333; font-weight:600; }
-  .switch { position:relative; width:40px; height:22px; border-radius:12px; background:#d8dbe0; cursor:pointer; transition:.2s; flex:none; }
+  .prodrow .info div { font-size:12px; color:#888; margin-top:2px; line-height:1.35; }
+
+  /* 옵션 토글 */
+  .optrow { display:flex; gap:22px; padding:12px 16px; background:#fff; border-bottom:8px solid #f2f3f5; }
+  .opt { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:#333; }
+  .switch { position:relative; width:38px; height:22px; border-radius:12px; background:#d8dbe0; cursor:pointer; transition:.2s; flex:none; }
   .switch.on { background:#2050b5; }
   .switch .knob { position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#fff; transition:.2s; box-shadow:0 1px 2px rgba(0,0,0,.3); }
-  .switch.on .knob { left:20px; }
-  .caseRow { display:flex; gap:6px; padding:0 16px 14px; overflow-x:auto; }
-  .caseBtn { flex:none; font-size:11.5px; font-weight:700; padding:7px 10px; border-radius:8px; border:1px solid #dfe2e7; background:#fff; color:#666; cursor:pointer; white-space:nowrap; }
-  .caseBtn.active { background:#1f2937; color:#fff; border-color:#1f2937; }
-  .qcard { margin:0 16px 20px; border:1.5px solid #2050b5; border-radius:16px; overflow:hidden; }
-  .qcard .brand { display:flex; justify-content:space-between; align-items:center; padding:10px 14px 0; }
-  .qcard .brand b { font-size:13px; }
-  .qcard .brand span { font-size:10.5px; color:#2050b5; font-weight:700; background:#eaf0fd; padding:3px 6px; border-radius:5px; }
-  .feewrap { margin:10px 14px; padding:12px; border-radius:12px; background:#f7f8fa; cursor:pointer; position:relative; }
-  .feewrap:active { background:#eef0f3; }
-  .feewrap { border:1px solid #e5e7eb; }
-  .feewrap .lbl { font-size:12px; color:#555; font-weight:600; display:flex; align-items:center; gap:4px; }
-  .feewrap { padding-right:34px; }
-  .feechev { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:24px; line-height:1; color:#f2730f; font-weight:400; }
-  .pillrow { display:flex; gap:5px; margin:6px 0 4px; flex-wrap:wrap; }
-  .pill { font-size:10.5px; font-weight:700; padding:3px 7px; border-radius:6px; }
-  .pill.discount { background:#e7edfb; color:#2050b5; }
-  .pill.waiver { background:#fef3e2; color:#b45309; }
-  .pill.sur { background:#eceef1; color:#4b5563; }
-  .pill.card { background:#fce8f1; color:#c0266f; }
+  .switch.on .knob { left:18px; }
 
-  /* 할인 종류별 혜택 칩 슬라이더 */
-  .benefitwrap { position:relative; margin-left:auto; max-width:66%; min-width:0; }
-  .benefitrow { display:flex; gap:5px; overflow-x:auto; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; }
-  .benefitrow::-webkit-scrollbar { display:none; }
-  .benefitrow { scrollbar-width:none; }
-  .bchip { flex:none; scroll-snap-align:start; font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:6px; white-space:nowrap; }
-  .bchip.waiver { background:#e6edfc; color:#1c3f9e; }
-  .bchip.half   { background:#e7edfb; color:#2050b5; }
-  .bchip.fixed  { background:#eaf1fd; color:#2f5bbf; }
-  .bchip.sur    { background:#eceef1; color:#5b6472; }
-  .bchip.card   { background:#e7edfb; color:#2050b5; }
-  .benefithint { display:none; font-size:10.5px; color:#aaa; margin-top:2px; text-align:right; }
-  .benefithint.show { display:block; }
-  .benefitfade { display:none; position:absolute; top:0; right:0; width:28px; height:100%; pointer-events:none; background:linear-gradient(90deg,rgba(255,255,255,0),#fff); }
-  .benefitfade.show { display:block; }
-  .feenum { display:flex; align-items:baseline; gap:6px; }
-  .feenum .now { font-size:23px; font-weight:800; color:#1a1a1a; }
-  .feenum .strike { font-size:13px; color:#b6bac1; text-decoration:line-through; }
-  .feechange { font-size:12px; color:#4b5563; font-weight:600; margin-top:6px; }
-  .feechange b { color:#2050b5; font-weight:800; }
-  .feechange .ar { color:#2050b5; font-weight:800; margin:0 3px; }
-  .feecapt { font-size:11px; color:#999; margin-top:3px; }
-  .feenet { display:none; font-size:11px; color:#4b5563; margin-top:6px; padding:5px 8px; border-radius:6px; background:#eef0f3; font-weight:600; }
-  .cashrow { margin:0 14px 14px; padding:13px 14px; border-radius:12px; background:linear-gradient(135deg,#fb9836,#f2730f); display:flex; flex-direction:column; align-items:flex-start; gap:4px; box-shadow:0 3px 8px rgba(230,110,20,.28); }
-  .cashrow .l { font-size:12px; color:#ffe7d0; font-weight:700; }
-  .cashrow .r { font-size:23px; font-weight:800; color:#fff; }
-  .agentrow { display:flex; align-items:center; gap:8px; margin:0 14px 12px; }
-  .agentrow .av { width:26px; height:26px; border-radius:50%; background:#ddd; flex:none; }
-  .agentrow b { font-size:12.5px; }
-  .agentrow .verified { font-size:10px; font-weight:700; color:#2050b5; background:#eaf0fd; padding:2px 6px; border-radius:5px; margin-left:6px; }
-  .agentrow .star { font-size:11px; color:#f5a623; margin-left:6px; }
-  .chatbtn { margin:0 14px 14px; padding:13px; text-align:center; background:#2050b5; border:1px solid #2050b5; color:#fff; border-radius:10px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 2px 6px rgba(32,80,181,.28); }
-  .chatbtn:active { background:#1a44a0; }
-  .caseSection { padding:0 16px 30px; }
-  .caseSection h2 { font-size:14px; font-weight:800; margin-bottom:10px; }
-  .caseSection .hint { font-size:11.5px; color:#999; margin-bottom:12px; }
+  /* 견적 카드 */
+  #list { padding:12px 12px 0; }
+  .ocard { background:#fff; border:1px solid #eaecef; border-radius:14px; padding:13px 14px; margin-bottom:12px; }
+  .ocard.sel { border:2px solid #2050b5; box-shadow:0 4px 14px rgba(32,80,181,.12); }
 
+  .ohead { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .lefthead { display:flex; align-items:center; gap:6px; }
+  .toptag { font-size:10.5px; font-weight:800; color:#fff; background:linear-gradient(135deg,#fb9836,#f2730f); padding:3px 8px; border-radius:6px; }
+  .brandtag { font-size:11.5px; font-weight:800; color:#2050b5; background:#eaf0fd; padding:3px 8px; border-radius:6px; }
+  .brandtag.ubus { color:#334155; background:#e7ebf1; }
+  .brandcert { font-size:10.5px; color:#9aa0a8; font-weight:600; }
+
+  /* 월요금 · 현금지원 반반 색상 박스 */
+  .obody { display:flex; gap:9px; }
+  .ocol { flex:1 1 0; min-width:0; border-radius:10px; padding:11px 12px; }
+  .ocol.left { background:#eef2fd; cursor:pointer; position:relative; }
+  .graphico { position:absolute; right:8px; top:8px; width:26px; height:26px; border-radius:8px; background:#fff; border:1px solid #d3ddf0; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 2px rgba(20,40,90,.06); }
+  .ocol.left:active .graphico { background:#eef2fd; }
+  .ocol.right { background:#fff6ec; }
+  .collabel { font-size:11.5px; font-weight:700; }
+  .ocol.left .collabel { color:#3a5bd0; }
+  .ocol.right .collabel { color:#c2600a; }
+  .colnum { font-size:22px; font-weight:800; margin-top:3px; }
+  .ocol.left .colnum { color:#1a2b4a; }
+  .ocol.right .colnum { color:#ec6a0c; }
+  .colnum span { font-size:14px; font-weight:700; margin-left:1px; }
+
+  /* 프로모션 배너 */
+  .obanner { position:relative; margin-top:11px; background:linear-gradient(135deg,#1f2d4d,#16233f); border-radius:10px; padding:11px 12px; color:#fff; overflow:hidden; }
+  .obanner .bt1 { font-size:11px; color:#aab6d6; font-weight:600; }
+  .obanner .bt2 { font-size:13px; font-weight:800; margin-top:2px; }
+  .obanner .free { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:#f2730f; color:#fff; font-size:11px; font-weight:800; padding:6px 9px; border-radius:8px; }
+
+  /* 판매자 */
+  .oseller { display:flex; align-items:center; gap:7px; margin-top:12px; }
+  .oseller .av { width:26px; height:26px; border-radius:50%; background:#d9dde3; flex:none; overflow:hidden; }
+  .oseller .nm { font-size:12.5px; font-weight:700; }
+  .oseller .star { font-size:11.5px; color:#f5a623; font-weight:700; }
+  .oseller .cnt { font-size:11px; color:#9aa0a8; }
+  .oseller .grade { margin-left:auto; font-size:10.5px; font-weight:800; padding:3px 8px; border-radius:6px; }
+  .grade.blue { color:#2050b5; background:#eaf0fd; }
+  .grade.green { color:#0f8a4d; background:#e4f5ec; }
+
+  /* 버튼 (견적서 · 채팅상담 반반) */
+  .obtnrow { display:flex; gap:8px; margin-top:13px; }
+  .obtn { padding:12px 6px; text-align:center; border-radius:10px; font-size:12.5px; font-weight:800; cursor:pointer; white-space:nowrap; display:flex; align-items:center; justify-content:center; gap:4px; }
+  .obtn.quote { flex:3 1 0; border:1px solid #cdd5e2; color:#42506a; background:#fff; }
+  .obtn.chat { flex:7 1 0; background:#2050b5; color:#fff; box-shadow:0 2px 6px rgba(32,80,181,.28); }
+
+  /* 월요금 상세 모달 (선형 그래프) */
   .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:flex-end; justify-content:center; z-index:50; }
   .modal-overlay.show { display:flex; }
   .sheet { width:390px; max-height:88vh; background:#fff; border-radius:18px 18px 0 0; overflow-y:auto; padding-bottom:20px; }
-  .sheet .shead { display:flex; justify-content:space-between; align-items:center; padding:14px 16px 6px; }
-  .sheet .shead .x { font-size:20px; color:#999; cursor:pointer; }
-  .summary-card { margin:6px 16px 14px; padding:16px; border-radius:14px; background:linear-gradient(135deg,#3654d6,#2b46c4); color:#fff; }
-  .summary-card .tag { font-size:11.5px; opacity:.85; margin-bottom:4px; }
-  .summary-card .big { font-size:26px; font-weight:800; }
-  .summary-card .stats { display:flex; gap:8px; margin-top:12px; }
-  .summary-card .stat { flex:1; background:rgba(255,255,255,.14); border-radius:10px; padding:8px; text-align:center; }
-  .summary-card .stat .k { font-size:10px; opacity:.8; }
-  .summary-card .stat .v { font-size:13.5px; font-weight:800; margin-top:2px; }
-  .tabs { display:flex; gap:6px; margin:0 16px 12px; }
-  .tabbtn { flex:1; padding:9px 0; text-align:center; font-size:12px; font-weight:700; border:1px solid #e2e5ea; border-radius:9px; color:#777; cursor:pointer; }
-  .tabbtn.active { border-color:#2050b5; color:#2050b5; background:#eef2fd; }
-  .prod-mini { display:flex; gap:8px; align-items:center; margin:0 16px 10px; padding:10px; border-radius:10px; background:#f7f8fa; }
-  .prod-mini .ic { width:30px; height:30px; border-radius:8px; background:#e3ecff; flex:none; }
-  .prod-mini b { font-size:12.5px; }
-  .prod-mini div.sub { font-size:10.5px; color:#999; margin-top:1px; }
-  .chiprow { display:flex; gap:5px; margin:0 16px 14px; flex-wrap:wrap; }
-  #tabContent { min-height:180px; margin:0 16px; }
-  .graphbox { border:1px solid #eee; border-radius:12px; padding:14px 10px 10px; }
+  .shead { display:flex; justify-content:space-between; align-items:center; padding:16px 16px 10px; }
+  .shead b { font-size:15px; }
+  .shead .x { font-size:20px; color:#999; cursor:pointer; }
+  .graphbox { border:1px solid #eee; border-radius:12px; padding:14px 10px 10px; margin:0 16px; }
   .graphbox .gtitle { font-size:12px; font-weight:700; color:#333; margin-bottom:8px; display:flex; justify-content:space-between; }
   .graphbox .gtitle span { font-size:10.5px; color:#aaa; font-weight:400; }
-  .brow { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; border-bottom:1px solid #f2f3f5; font-size:12.5px; }
-  .brow .k { color:#666; display:flex; align-items:center; gap:5px; }
-  .brow .v { font-weight:800; color:#222; }
-  .brow .v.strike { text-decoration:line-through; color:#bbb; font-weight:600; }
-  .trow { display:flex; align-items:flex-start; gap:10px; margin:0 16px 10px; padding:12px; border-radius:10px; background:#fafbfc; }
-  .trow.waiver { background:#eef2fd; }
-  .trow .num { width:22px; height:22px; border-radius:50%; background:#2050b5; color:#fff; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none; }
-  .trow.waiver .num { background:#e2660c; }
-  .trow .body b { font-size:12.5px; }
-  .trow .body div.sub { font-size:11px; color:#999; margin-top:2px; }
-  .trow .amt { margin-left:auto; text-align:right; font-size:13px; font-weight:800; }
-  .trow .amt .sc { display:block; font-size:10.5px; color:#999; font-weight:500; margin-top:2px; }
-  #breakList { margin-top:8px; }
+  .mcase { display:flex; flex-wrap:wrap; gap:6px; margin:0 16px 12px; }
+  .mtag { font-size:11.5px; font-weight:800; color:#2050b5; background:#eaf0fd; padding:5px 11px; border-radius:20px; }
   .breaktitle { font-size:12.5px; font-weight:800; color:#333; margin:18px 16px 8px; }
-  .timeline-track { margin:0 16px 16px; }
-  .tl-seg { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-  .tl-bar { height:26px; border-radius:6px; display:flex; align-items:center; padding:0 8px; font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; }
+  .trow .body .sub { font-size:11px; color:#9aa0a8; margin-top:2px; }
+  .trow { display:flex; align-items:center; gap:10px; margin:0 16px 10px; padding:12px; border-radius:10px; background:#fafbfc; }
+  .trow .num { width:22px; height:22px; border-radius:50%; background:#2050b5; color:#fff; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none; }
+  .trow .body b { font-size:12.5px; }
+  .trow .amt { margin-left:auto; text-align:right; font-size:13px; font-weight:800; }
 </style>
 </head>
 <body>
 <div class="frame">
-  <div class="topbar">
-    <div><h1>견적서 목록</h1><div class="sub">요일찾기 2024.01.22</div></div>
-    <div style="font-size:16px;">⌂</div>
-  </div>
-  <div class="noticebar">견적서를 선택하고 주문확정을 해주세요.</div>
-
   <div class="prodrow">
     <div class="thumb"></div>
     <div class="info">
@@ -138,249 +103,174 @@
     </div>
   </div>
 
-  <div class="cardtoggle">
-    <span>제휴카드 결제 할인</span>
-    <div class="switch" id="cardSwitch"><div class="knob"></div></div>
+  <div class="optrow">
+    <div class="opt"><span>제휴카드</span><div class="switch on" data-opt="card"><div class="knob"></div></div></div>
+    <div class="opt"><span>휴대폰 결합</span><div class="switch" data-opt="phone"><div class="knob"></div></div></div>
   </div>
 
-  <div class="caseRow" id="caseRow"></div>
-
-  <div class="qcard">
-    <div class="brand"><b>코웨이 아이콘2 냉온정</b></div>
-    <div class="feewrap" id="feeTrigger">
-      <div class="lbl"><span class="lbltxt">첫달 월요금</span>
-        <div class="benefitwrap" id="benefitWrap">
-          <div class="benefitrow" id="benefitRow"></div>
-          <div class="benefitfade" id="benefitFade"></div>
-        </div>
-      </div>
-      <div class="feenum"><span class="now" id="feeNow">28,400원</span><span class="strike" id="feeStrike"></span></div>
-      <div class="feechange" id="feeChange"></div>
-      <div class="feechev">›</div>
-    </div>
-    <div class="cashrow">
-      <div class="l">현금지원금 · 지급보장</div>
-      <div class="r">25만원</div>
-    </div>
-    <div class="agentrow">
-      <div class="av"></div>
-      <b>김상식 팀장</b><span class="star">★ 5.0</span><span class="verified">✓ 판매자 인증</span>
-    </div>
-    <div class="chatbtn">채팅상담하기</div>
-  </div>
-
+  <div id="list"></div>
 </div>
 
-<div class="modal-overlay" id="modalOverlay">
+<div class="modal-overlay" id="modal">
   <div class="sheet">
-    <div class="shead"><b style="font-size:15px;">월 요금 상세</b><span class="x" id="modalClose">✕</span></div>
-    <div id="tabContent"></div>
+    <div class="shead"><b id="mTitle">월 요금 상세</b><span class="x" id="mClose">✕</span></div>
+    <div class="mcase" id="mCase"></div>
+    <div id="mGraph"></div>
     <div class="breaktitle">구간별 상세</div>
-    <div id="breakList"></div>
+    <div id="mBreak"></div>
   </div>
 </div>
 
 <script>
-const BASE = 28400;
-const TOTAL_MONTHS = 84;
-
-// 규칙: 같은 종류 중복 불가(면제+면제, 반값+반값 ✕). 서로 다른 종류는 기간을 나눠 자유 조합.
-//       상쇄(±)는 정액끼리만(정액할인 − vs 추가요금 +). 정률(면제/반값)과 정액은 상쇄가 아니라 공존(정률→정액 순).
-// 혜택 종류(kind): waiver 월요금면제 / half 반값 / fixed 정액할인 / sur 추가요금
-// 예시값: BASE 28,400 / 면제 3개월 / 반값 12개월(14,200) / 정액할인 −1,500원 12개월 / 추가요금 조리수기 +1,000원
-const casesData = [
-  { id:0, name:'기본', badges:[], segs:[{months:84,fee:28400,type:'normal',label:'전체 기간'}], capt:'정상가', strike:null },
-  { id:1, name:'면제', badges:[{kind:'waiver',text:'3개월'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:81,fee:28400,type:'normal',label:'4~84개월'}], capt:'4개월부터 28,400원', strike:null },
-  { id:2, name:'반값', badges:[{kind:'half',text:'12개월'}], segs:[{months:12,fee:14200,type:'half',label:'1~12개월'},{months:72,fee:28400,type:'normal',label:'13~84개월'}], capt:'13개월부터 28,400원', strike:28400 },
-  { id:3, name:'정액할인', badges:[{kind:'fixed',text:'−1,500원'}], segs:[{months:12,fee:26900,type:'fixed',label:'1~12개월'},{months:72,fee:28400,type:'normal',label:'13~84개월'}], capt:'13개월부터 28,400원', strike:28400 },
-  { id:4, name:'추가요금', badges:[{kind:'sur',text:'+1,000원'}], segs:[{months:84,fee:29400,type:'sur',label:'전체 기간'}], capt:'조리수기 포함가', strike:null },
-  { id:5, name:'면제+반값', badges:[{kind:'waiver',text:'3개월'},{kind:'half',text:'12개월'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:14200,type:'half',label:'4~15개월'},{months:69,fee:28400,type:'normal',label:'16~84개월'}], capt:'16개월부터 28,400원', strike:28400 },
-  { id:6, name:'정액할인+추가요금', badges:[{kind:'fixed',text:'−1,500원'},{kind:'sur',text:'+1,000원'}], segs:[{months:12,fee:27900,type:'fixed',label:'1~12개월'},{months:72,fee:29400,type:'sur',label:'13~84개월'}], capt:'13개월부터 29,400원', strike:28400, netNote:'조리수기 +1,000 − 정액할인 1,500 = 순 −500원/월 (1~12개월)' },
-  { id:7, name:'면제+반값+정액할인', badges:[{kind:'waiver',text:'3개월'},{kind:'half',text:'12개월'},{kind:'fixed',text:'−1,500원'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:14200,type:'half',label:'4~15개월'},{months:12,fee:26900,type:'fixed',label:'16~27개월'},{months:57,fee:28400,type:'normal',label:'28~84개월'}], capt:'28개월부터 28,400원', strike:28400 },
-  { id:8, name:'면제+반값+추가요금', badges:[{kind:'waiver',text:'3개월'},{kind:'half',text:'12개월'},{kind:'sur',text:'+1,000원'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:15200,type:'half',label:'4~15개월'},{months:69,fee:29400,type:'sur',label:'16~84개월'}], capt:'16개월부터 29,400원', strike:28400 },
-  { id:9, name:'면제+반값+정액할인+추가요금', badges:[{kind:'waiver',text:'3개월'},{kind:'half',text:'12개월'},{kind:'fixed',text:'−1,500원'},{kind:'sur',text:'+1,000원'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:15200,type:'half',label:'4~15개월'},{months:12,fee:27900,type:'fixed',label:'16~27개월'},{months:57,fee:29400,type:'sur',label:'28~84개월'}], capt:'28개월부터 29,400원', strike:28400, netNote:'16~27개월: 조리수기 +1,000 − 정액할인 1,500 = 순 −500원/월' }
+const offers = [
+  {
+    sel:true, brand:'KG하나렌탈', cert:true,
+    fee:'19,000', total:'총 326,850원', cash:'27+13',
+    seller:'렌트리 안심구독', rating:'5.0', contracts:'계약 4,346건',
+    grade:{ text:'안심구독', color:'blue' },
+    topTag:'최대혜택가',
+    tags:['신규 프로모션 할인'],
+    segs:[{m:12,f:19000,t:'promo'},{m:24,f:28400,t:'normal'}],
+    chatText:'렌트리와 채팅상담'
+  },
+  {
+    brand:'KG하나렌탈', cert:true,
+    fee:'24,000', total:'총 246,850원', cash:'25',
+    seller:'김상식 팀장', rating:'5.0', contracts:'계약 4,346건',
+    grade:{ text:'공식', color:'blue' },
+    tags:['정액할인','1년 12만원'],
+    segs:[{m:12,f:24000,t:'fixed'},{m:24,f:34000,t:'normal'}],
+    chatText:'채팅상담하기'
+  },
+  {
+    brand:'KG하나렌탈', cert:true,
+    fee:'24,000', total:'총 246,850원', cash:'24',
+    seller:'한은global 매니저', rating:'5.0', contracts:'계약 4,346건',
+    grade:{ text:'우수', color:'green' },
+    tags:['반값할인'],
+    segs:[{m:12,f:24000,t:'half'},{m:24,f:48000,t:'normal'}],
+    chatText:'채팅상담하기'
+  },
+  {
+    brand:'UBUS', brandClass:'ubus', cert:true,
+    fee:'24,000', total:'총 246,850원', cash:'21',
+    seller:'박유신 프로', rating:'5.0', contracts:'계약 4,346건',
+    grade:null,
+    tags:['반값할인','단계 인상'],
+    segs:[{m:12,f:24000,t:'half'},{m:12,f:36000,t:'step'},{m:12,f:48000,t:'normal'}],
+    chatText:'채팅상담하기'
+  }
 ];
 
-// 혜택 종류별 표시(아이콘·이름) — 각 할인별로 색은 CSS .bchip.<kind> 로 구분
-const KIND = {
-  waiver: { icon:'🎁', label:'월요금 면제' },
-  half:   { icon:'🏷️', label:'반값할인' },
-  fixed:  { icon:'🔻', label:'정액할인' },
-  sur:    { icon:'➕', label:'추가요금' },
-  card:   { icon:'💳', label:'카드할인' }
-};
-const TYPE_COLOR = { normal:'#94a3b8', half:'#2050b5', fixed:'#2f5bbf', waiver:'#1c3f9e', sur:'#6b7280' };
+function cardHtml(o,i){
+  const grade = o.grade ? '<span class="grade '+o.grade.color+'">'+o.grade.text+'</span>' : '';
+  return ''
+    + '<div class="ocard'+(o.sel?' sel':'')+'">'
+    +   '<div class="ohead">'
+    +     '<span class="lefthead">'
+    +       (o.topTag?'<span class="toptag">'+o.topTag+'</span>':'')
+    +       '<span class="brandtag'+(o.brandClass?' '+o.brandClass:'')+'">'+o.brand+'</span>'
+    +     '</span>'
+    +     (o.cert?'<span class="brandcert">● 브랜드인증</span>':'')
+    +   '</div>'
+    +   '<div class="obody">'
+    +     '<div class="ocol left" data-idx="'+i+'">'
+    +       '<span class="graphico"><svg width="15" height="15" viewBox="0 0 18 18"><polyline points="2,12 6,8 10,10 16,4" fill="none" stroke="#2050b5" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+    +       '<div class="collabel">첫달 요금</div>'
+    +       '<div class="colnum">'+o.fee+'<span>원</span></div>'
+    +     '</div>'
+    +     '<div class="ocol right">'
+    +       '<div class="collabel">현금지원</div>'
+    +       '<div class="colnum orange">'+o.cash+'<span>만원</span></div>'
+    +     '</div>'
+    +   '</div>'
+    +   '<div class="oseller">'
+    +     '<div class="av"></div>'
+    +     '<span class="nm">'+o.seller+'</span>'
+    +     '<span class="star">★ '+o.rating+'</span>'
+    +     '<span class="cnt">'+o.contracts+'</span>'
+    +     grade
+    +   '</div>'
+    +   '<div class="obtnrow">'
+    +     '<div class="obtn quote">📄 견적</div>'
+    +     '<div class="obtn chat">'+o.chatText+'</div>'
+    +   '</div>'
+    + '</div>';
+}
 
-let currentCase = 0;
-let cardOn = false;
-let currentTab = 'graph';
+document.getElementById('list').innerHTML = offers.map(cardHtml).join('');
 
+document.querySelectorAll('.switch').forEach(sw=>{
+  sw.addEventListener('click', ()=> sw.classList.toggle('on'));
+});
+
+/* ===== 월요금 상세: 선형 그래프 모달 ===== */
+const TOTAL_MONTHS = 36;
 function fmt(n){ return n.toLocaleString('ko-KR'); }
 
-// "처음 N개월 A원 → (…) → 이후 Z원" — 구간이 3개 이상이면 중간 단계 있음을 …로 표시
-function changeText(segs){
-  if(segs.length <= 1) return '';
-  const first = segs[0], last = segs[segs.length-1];
-  const mid = segs.length > 2 ? '<span class="ar">→</span>…' : '';
-  return '처음 '+first.months+'개월 <b>'+fmt(first.fee)+'원</b>'+mid
-       + '<span class="ar">→</span>이후 <b>'+fmt(last.fee)+'원</b>';
-}
-
-function activeSegs(c){
-  return c.segs.map(s=>{
-    let fee = s.fee;
-    if(cardOn && fee>0) fee = Math.max(0, fee-2000);
-    return Object.assign({}, s, {fee});
-  });
-}
-
-function computeStats(segs){
-  let totalPaid=0; let minFee=Infinity;
-  segs.forEach(s=>{ totalPaid += s.fee*s.months; if(s.fee<minFee) minFee=s.fee; });
-  const normalTotal = BASE*TOTAL_MONTHS;
-  const diff = normalTotal-totalPaid;
-  const pct = Math.round(diff/normalTotal*1000)/10;
-  const avg = Math.round(totalPaid/TOTAL_MONTHS);
-  return { totalPaid, diff, pct, avg, minFee };
-}
-
-function chipHtml(b){
-  const label = (KIND[b.kind] && KIND[b.kind].label) || b.kind;
-  return '<span class="bchip '+b.kind+'">'+label+' '+b.text+'</span>';
-}
-
-function renderBenefits(c){
-  const row = document.getElementById('benefitRow');
-  let chips = c.badges.map(chipHtml).join('');
-  if(cardOn) chips += chipHtml({kind:'card', text:'−2,000원'});
-  row.innerHTML = chips;
-  document.getElementById('benefitWrap').style.display = chips ? 'block' : 'none';
-  // 칩이 넘치면(할인이 많으면) 오른쪽 페이드로 슬라이드 가능 표시
-  const overflow = row.scrollWidth > row.clientWidth + 2;
-  document.getElementById('benefitFade').classList.toggle('show', !!chips && overflow);
-  row.scrollLeft = 0;
-}
-
-function renderCaseButtons(){
-  const row = document.getElementById('caseRow');
-  row.innerHTML = casesData.map(c=>'<div class="caseBtn'+(c.id===currentCase?' active':'')+'" data-case="'+c.id+'">'+c.name+'</div>').join('');
-  row.querySelectorAll('.caseBtn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ applyCase(parseInt(btn.dataset.case)); });
-  });
-}
-
-function applyCase(id){
-  currentCase = id;
-  const c = casesData[id];
-  const segs = activeSegs(c);
-  document.querySelectorAll('.caseBtn').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.case)===id));
-
-  renderBenefits(c);
-  document.getElementById('feeNow').textContent = fmt(segs[0].fee)+'원';
-  document.getElementById('feeStrike').textContent = (c.strike && segs[0].fee!==c.strike) ? fmt(c.strike)+'원' : '';
-  const chEl = document.getElementById('feeChange');
-  const ct = changeText(segs);
-  chEl.innerHTML = ct;
-  chEl.style.display = ct ? 'block' : 'none';
-
-  if(document.getElementById('modalOverlay').classList.contains('show')){
-    openModalForCase(id);
-  }
-}
-
-function renderTimeline(segs){
-  let html = '<div class="timeline-track">';
-  segs.forEach(s=>{
-    const w = Math.max(8, Math.round(s.months/TOTAL_MONTHS*100));
-    html += '<div class="tl-seg"><div class="tl-bar" style="width:'+w+'%;background:'+(TYPE_COLOR[s.type]||'#94a3b8')+';">'+s.label+' · '+fmt(s.fee)+'원</div></div>';
-  });
-  html += '</div>';
-  return html;
-}
-
-function renderTable(segs){
-  let html = '<div style="margin:0 16px;">';
-  segs.forEach(s=>{
-    html += '<div class="brow"><span class="k">'+s.label+' ('+s.months+'개월)</span><span class="v">'+fmt(s.fee)+'원/월</span></div>';
-  });
-  html += '</div>';
-  return html;
-}
+// 세그먼트 타입별 적용 내용/색상
+const SEG = {
+  promo:  { desc:'신규 프로모션 적용', color:'#2050b5' },
+  fixed:  { desc:'정액할인 적용',     color:'#2050b5' },
+  half:   { desc:'반값할인 적용',     color:'#2050b5' },
+  step:   { desc:'요금 인상',         color:'#9aa0a8' },
+  normal: { desc:'정상가',            color:'#9aa0a8' }
+};
+function segColor(t){ return (SEG[t]||SEG.normal).color; }
+function segDesc(t){ return (SEG[t]||SEG.normal).desc; }
 
 function renderGraph(segs){
   const w=340,h=170,pad=28;
-  const maxFee = Math.max(BASE, ...segs.map(s=>s.fee));
+  const maxFee = Math.max(...segs.map(s=>s.f));
   const scaleX = (w-pad*2)/TOTAL_MONTHS;
   const scaleY = (h-pad*1.4)/maxFee;
-  let x=0; let path=''; let points=[];
+  let x=0, path='', points=[];
   segs.forEach(s=>{
-    const x1=x, x2=x+s.months;
-    const y = h-pad*0.6 - s.fee*scaleY;
+    const x1=x, x2=x+s.m;
+    const y = h-pad*0.6 - s.f*scaleY;
     path += (path===''?'M':'L')+(pad+x1*scaleX)+' '+y+' L '+(pad+x2*scaleX)+' '+y+' ';
-    points.push({x:pad+x1*scaleX,y,label:fmt(s.fee)+'원',type:s.type});
+    points.push({x:pad+x1*scaleX, y, label:fmt(s.f)+'원', color:segColor(s.t)});
     x=x2;
   });
-  const baseY = h-pad*0.6-BASE*scaleY;
-  let svg = '<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="overflow:visible;">';
-  svg += '<line x1="'+pad+'" y1="'+baseY+'" x2="'+(w-pad)+'" y2="'+baseY+'" stroke="#c3cee6" stroke-dasharray="4,3" stroke-width="1"/>';
-  svg += '<path d="'+path+'" fill="none" stroke="#2050b5" stroke-width="2.5"/>';
+  let svg='<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="overflow:visible;">';
+  svg+='<path d="'+path+'" fill="none" stroke="#2050b5" stroke-width="2.5"/>';
   points.forEach(p=>{
-    const col = TYPE_COLOR[p.type] || '#2050b5';
-    svg += '<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="'+col+'"/>';
-    svg += '<text x="'+p.x+'" y="'+(p.y-8)+'" font-size="9.5" fill="'+col+'" font-weight="700">'+p.label+'</text>';
+    svg+='<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="'+p.color+'"/>';
+    svg+='<text x="'+p.x+'" y="'+(p.y-8)+'" font-size="9.5" fill="'+p.color+'" font-weight="700">'+p.label+'</text>';
   });
-  svg += '<text x="'+pad+'" y="'+(h-6)+'" font-size="9" fill="#aaa">1개월</text>';
-  svg += '<text x="'+(w-pad-30)+'" y="'+(h-6)+'" font-size="9" fill="#aaa">'+TOTAL_MONTHS+'개월</text>';
-  svg += '</svg>';
+  svg+='<text x="'+pad+'" y="'+(h-6)+'" font-size="9" fill="#aaa">1개월</text>';
+  svg+='<text x="'+(w-pad-30)+'" y="'+(h-6)+'" font-size="9" fill="#aaa">'+TOTAL_MONTHS+'개월</text>';
+  svg+='</svg>';
   return '<div class="graphbox"><div class="gtitle">월 렌탈료 변동 그래프 <span>'+TOTAL_MONTHS+'개월 계약</span></div>'+svg+'</div>';
 }
 
-const tabRenderers = { timeline: renderTimeline, table: renderTable, graph: renderGraph };
-
-function setTab(tab){
-  currentTab = tab;
-  const c = casesData[currentCase];
-  const segs = activeSegs(c);
-  document.getElementById('tabContent').innerHTML = tabRenderers[tab](segs);
-}
-
-const SEG_DESC = { waiver:'월요금 면제', half:'반값할인 적용', fixed:'정액할인 적용', sur:'추가요금 포함', normal:'정상가' };
-
 function renderBreakList(segs){
-  const wrap = document.getElementById('breakList');
-  let html=''; let start=1;
+  let html='', start=1;
   segs.forEach((s,i)=>{
-    const end = start+s.months-1;
-    const col = TYPE_COLOR[s.type] || '#2050b5';
-    const desc = SEG_DESC[s.type] || '적용가';
-    html += '<div class="trow'+(s.type==='waiver'?' waiver':'')+'">';
-    html += '<div class="num" style="background:'+col+';">'+(i+1)+'</div>';
-    html += '<div class="body"><b>'+start+(s.months>1?'~'+end:'')+'회차 ('+s.months+'개월)</b><div class="sub">'+desc+' · '+fmt(s.fee)+'원/월</div></div>';
-    html += '<div class="amt">'+fmt(s.fee)+'원/월<span class="sc">소계 '+fmt(s.fee*s.months)+'원</span></div>';
-    html += '</div>';
-    start = end+1;
+    const end=start+s.m-1;
+    html+='<div class="trow"><div class="num" style="background:'+segColor(s.t)+';">'+(i+1)+'</div>'
+       + '<div class="body"><b>'+start+(s.m>1?'~'+end:'')+'회차 ('+s.m+'개월)</b><div class="sub">'+segDesc(s.t)+'</div></div>'
+       + '<div class="amt">'+fmt(s.f)+'원/월</div></div>';
+    start=end+1;
   });
-  wrap.innerHTML = html;
+  return html;
 }
 
-function openModalForCase(id){
-  const segs = activeSegs(casesData[id]);
-  setTab(currentTab);
-  renderBreakList(segs);
-  document.getElementById('modalOverlay').classList.add('show');
+function openModal(i){
+  const o = offers[i];
+  document.getElementById('mTitle').textContent = o.seller+' · 요금 상세';
+  document.getElementById('mCase').innerHTML = (o.tags||[]).map(t=>'<span class="mtag">'+t+'</span>').join('');
+  document.getElementById('mGraph').innerHTML = renderGraph(o.segs);
+  document.getElementById('mBreak').innerHTML = renderBreakList(o.segs);
+  document.getElementById('modal').classList.add('show');
 }
 
-document.getElementById('feeTrigger').addEventListener('click', ()=>openModalForCase(currentCase));
-document.getElementById('modalClose').addEventListener('click', ()=>document.getElementById('modalOverlay').classList.remove('show'));
-document.getElementById('modalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='modalOverlay') e.currentTarget.classList.remove('show'); });
-document.getElementById('cardSwitch').addEventListener('click', function(){
-  cardOn = !cardOn;
-  this.classList.toggle('on', cardOn);
-  applyCase(currentCase);
+document.getElementById('list').addEventListener('click', e=>{
+  const col = e.target.closest('.ocol.left');
+  if(col) openModal(parseInt(col.dataset.idx));
 });
-
-renderCaseButtons();
-applyCase(0);
+document.getElementById('mClose').addEventListener('click', ()=>document.getElementById('modal').classList.remove('show'));
+document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==='modal') e.currentTarget.classList.remove('show'); });
 </script>
 </body>
 </html>
