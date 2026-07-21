@@ -44,15 +44,12 @@
   .benefitrow { display:flex; gap:7px; overflow-x:auto; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; padding:1px 0 3px; }
   .benefitrow::-webkit-scrollbar { display:none; }
   .benefitrow { scrollbar-width:none; }
-  .bchip { flex:none; scroll-snap-align:start; display:flex; align-items:center; gap:7px; padding:8px 11px 8px 9px; border-radius:11px; border:1.5px solid; }
-  .bchip .bic { font-size:16px; line-height:1; }
-  .bchip .btx b { font-size:12px; font-weight:800; display:block; line-height:1.2; }
-  .bchip .btx i { font-size:10.5px; font-style:normal; display:block; opacity:.9; margin-top:1px; }
-  .bchip.waiver { background:#fff5e9; border-color:#f6c88a; color:#b45309; }
-  .bchip.half   { background:#eaf0fd; border-color:#a9c1f2; color:#2050b5; }
-  .bchip.fixed  { background:#e5f5f1; border-color:#8fd0c2; color:#0f766e; }
-  .bchip.sur    { background:#eef0f3; border-color:#c7ccd4; color:#4b5563; }
-  .bchip.card   { background:#fdeaf2; border-color:#f2b0cf; color:#c0266f; }
+  .bchip { flex:none; scroll-snap-align:start; font-size:11.5px; font-weight:700; padding:5px 10px; border-radius:7px; white-space:nowrap; }
+  .bchip.waiver { background:#fef3e2; color:#b45309; }
+  .bchip.half   { background:#e7edfb; color:#2050b5; }
+  .bchip.fixed  { background:#e5f5f1; color:#0f766e; }
+  .bchip.sur    { background:#eceef1; color:#4b5563; }
+  .bchip.card   { background:#fce8f1; color:#c0266f; }
   .benefithint { display:none; font-size:10.5px; color:#aaa; margin-top:2px; text-align:right; }
   .benefithint.show { display:block; }
   .benefitfade { display:none; position:absolute; top:0; right:0; width:28px; height:100%; pointer-events:none; background:linear-gradient(90deg,rgba(255,255,255,0),#fff); }
@@ -112,6 +109,7 @@
   .trow .amt { margin-left:auto; text-align:right; font-size:13px; font-weight:800; }
   .trow .amt .sc { display:block; font-size:10.5px; color:#999; font-weight:500; margin-top:2px; }
   #breakList { margin-top:8px; }
+  .breaktitle { font-size:12.5px; font-weight:800; color:#333; margin:18px 16px 8px; }
   .timeline-track { margin:0 16px 16px; }
   .tl-seg { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
   .tl-bar { height:26px; border-radius:6px; display:flex; align-items:center; padding:0 8px; font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; }
@@ -175,6 +173,8 @@
   <div class="sheet">
     <div class="shead"><b style="font-size:15px;">월 요금 상세</b><span class="x" id="modalClose">✕</span></div>
     <div id="tabContent"></div>
+    <div class="breaktitle">구간별 상세</div>
+    <div id="breakList"></div>
   </div>
 </div>
 
@@ -188,15 +188,15 @@ const TOTAL_MONTHS = 84;
 // 예시값: BASE 28,400 / 면제 3개월 / 반값 12개월(14,200) / 정액할인 −1,500원 12개월 / 추가요금 조리수기 +1,000원
 const casesData = [
   { id:0, name:'기본', badges:[], segs:[{months:84,fee:28400,type:'normal',label:'전체 기간'}], capt:'정상가', strike:null },
-  { id:1, name:'면제', badges:[{kind:'waiver',text:'3개월 0원'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:81,fee:28400,type:'normal',label:'4~84개월'}], capt:'4개월부터 28,400원', strike:null },
-  { id:2, name:'반값', badges:[{kind:'half',text:'12개월 50%'}], segs:[{months:12,fee:14200,type:'half',label:'1~12개월'},{months:72,fee:28400,type:'normal',label:'13~84개월'}], capt:'13개월부터 28,400원', strike:28400 },
-  { id:3, name:'정액할인', badges:[{kind:'fixed',text:'−1,500원 12개월'}], segs:[{months:12,fee:26900,type:'fixed',label:'1~12개월'},{months:72,fee:28400,type:'normal',label:'13~84개월'}], capt:'13개월부터 28,400원', strike:28400 },
-  { id:4, name:'추가요금', badges:[{kind:'sur',text:'조리수기 +1,000원'}], segs:[{months:84,fee:29400,type:'sur',label:'전체 기간'}], capt:'조리수기 포함가', strike:null },
-  { id:5, name:'면제+반값', badges:[{kind:'waiver',text:'3개월 0원'},{kind:'half',text:'12개월 50%'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:14200,type:'half',label:'4~15개월'},{months:69,fee:28400,type:'normal',label:'16~84개월'}], capt:'16개월부터 28,400원', strike:28400 },
-  { id:6, name:'정액할인+추가요금', badges:[{kind:'fixed',text:'−1,500원 12개월'},{kind:'sur',text:'조리수기 +1,000원'}], segs:[{months:12,fee:27900,type:'fixed',label:'1~12개월'},{months:72,fee:29400,type:'sur',label:'13~84개월'}], capt:'13개월부터 29,400원', strike:28400, netNote:'조리수기 +1,000 − 정액할인 1,500 = 순 −500원/월 (1~12개월)' },
-  { id:7, name:'면제+반값+정액할인', badges:[{kind:'waiver',text:'3개월 0원'},{kind:'half',text:'12개월 50%'},{kind:'fixed',text:'−1,500원 12개월'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:14200,type:'half',label:'4~15개월'},{months:12,fee:26900,type:'fixed',label:'16~27개월'},{months:57,fee:28400,type:'normal',label:'28~84개월'}], capt:'28개월부터 28,400원', strike:28400 },
-  { id:8, name:'면제+반값+추가요금', badges:[{kind:'waiver',text:'3개월 0원'},{kind:'half',text:'12개월 50%'},{kind:'sur',text:'조리수기 +1,000원'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:15200,type:'half',label:'4~15개월'},{months:69,fee:29400,type:'sur',label:'16~84개월'}], capt:'16개월부터 29,400원', strike:28400 },
-  { id:9, name:'면제+반값+정액할인+추가요금', badges:[{kind:'waiver',text:'3개월 0원'},{kind:'half',text:'12개월 50%'},{kind:'fixed',text:'−1,500원 12개월'},{kind:'sur',text:'조리수기 +1,000원'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:15200,type:'half',label:'4~15개월'},{months:12,fee:27900,type:'fixed',label:'16~27개월'},{months:57,fee:29400,type:'sur',label:'28~84개월'}], capt:'28개월부터 29,400원', strike:28400, netNote:'16~27개월: 조리수기 +1,000 − 정액할인 1,500 = 순 −500원/월' }
+  { id:1, name:'면제', badges:[{kind:'waiver',text:'3개월'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:81,fee:28400,type:'normal',label:'4~84개월'}], capt:'4개월부터 28,400원', strike:null },
+  { id:2, name:'반값', badges:[{kind:'half',text:'12개월'}], segs:[{months:12,fee:14200,type:'half',label:'1~12개월'},{months:72,fee:28400,type:'normal',label:'13~84개월'}], capt:'13개월부터 28,400원', strike:28400 },
+  { id:3, name:'정액할인', badges:[{kind:'fixed',text:'−1,500원'}], segs:[{months:12,fee:26900,type:'fixed',label:'1~12개월'},{months:72,fee:28400,type:'normal',label:'13~84개월'}], capt:'13개월부터 28,400원', strike:28400 },
+  { id:4, name:'추가요금', badges:[{kind:'sur',text:'+1,000원'}], segs:[{months:84,fee:29400,type:'sur',label:'전체 기간'}], capt:'조리수기 포함가', strike:null },
+  { id:5, name:'면제+반값', badges:[{kind:'waiver',text:'3개월'},{kind:'half',text:'12개월'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:14200,type:'half',label:'4~15개월'},{months:69,fee:28400,type:'normal',label:'16~84개월'}], capt:'16개월부터 28,400원', strike:28400 },
+  { id:6, name:'정액할인+추가요금', badges:[{kind:'fixed',text:'−1,500원'},{kind:'sur',text:'+1,000원'}], segs:[{months:12,fee:27900,type:'fixed',label:'1~12개월'},{months:72,fee:29400,type:'sur',label:'13~84개월'}], capt:'13개월부터 29,400원', strike:28400, netNote:'조리수기 +1,000 − 정액할인 1,500 = 순 −500원/월 (1~12개월)' },
+  { id:7, name:'면제+반값+정액할인', badges:[{kind:'waiver',text:'3개월'},{kind:'half',text:'12개월'},{kind:'fixed',text:'−1,500원'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:14200,type:'half',label:'4~15개월'},{months:12,fee:26900,type:'fixed',label:'16~27개월'},{months:57,fee:28400,type:'normal',label:'28~84개월'}], capt:'28개월부터 28,400원', strike:28400 },
+  { id:8, name:'면제+반값+추가요금', badges:[{kind:'waiver',text:'3개월'},{kind:'half',text:'12개월'},{kind:'sur',text:'+1,000원'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:15200,type:'half',label:'4~15개월'},{months:69,fee:29400,type:'sur',label:'16~84개월'}], capt:'16개월부터 29,400원', strike:28400 },
+  { id:9, name:'면제+반값+정액할인+추가요금', badges:[{kind:'waiver',text:'3개월'},{kind:'half',text:'12개월'},{kind:'fixed',text:'−1,500원'},{kind:'sur',text:'+1,000원'}], segs:[{months:3,fee:0,type:'waiver',label:'1~3개월'},{months:12,fee:15200,type:'half',label:'4~15개월'},{months:12,fee:27900,type:'fixed',label:'16~27개월'},{months:57,fee:29400,type:'sur',label:'28~84개월'}], capt:'28개월부터 29,400원', strike:28400, netNote:'16~27개월: 조리수기 +1,000 − 정액할인 1,500 = 순 −500원/월' }
 ];
 
 // 혜택 종류별 표시(아이콘·이름) — 각 할인별로 색은 CSS .bchip.<kind> 로 구분
@@ -234,16 +234,15 @@ function computeStats(segs){
 }
 
 function chipHtml(b){
-  const k = KIND[b.kind] || {icon:'', label:b.kind};
-  return '<div class="bchip '+b.kind+'"><span class="bic">'+k.icon+'</span>'
-       + '<span class="btx"><b>'+k.label+'</b><i>'+b.text+'</i></span></div>';
+  const label = (KIND[b.kind] && KIND[b.kind].label) || b.kind;
+  return '<span class="bchip '+b.kind+'">'+label+' '+b.text+'</span>';
 }
 
 function renderBenefits(c){
   const row = document.getElementById('benefitRow');
   let chips = c.badges.map(chipHtml).join('');
-  if(cardOn) chips += chipHtml({kind:'card', text:'-2,000원'});
-  row.innerHTML = chips || '<div class="bchip half"><span class="bic">💧</span><span class="btx"><b>정상가</b><i>적용 혜택 없음</i></span></div>';
+  if(cardOn) chips += chipHtml({kind:'card', text:'−2,000원'});
+  row.innerHTML = chips || '<span class="bchip half">정상가 · 적용 혜택 없음</span>';
   // 칩이 넘치면(할인이 많으면) 슬라이드 안내·페이드 표시
   const overflow = row.scrollWidth > row.clientWidth + 2;
   document.getElementById('benefitHint').classList.toggle('show', overflow);
@@ -334,9 +333,29 @@ function setTab(tab){
   document.getElementById('tabContent').innerHTML = tabRenderers[tab](segs);
 }
 
-function openModalForCase(id){
-  setTab(currentTab);
+const SEG_DESC = { waiver:'월요금 면제', half:'반값할인 적용', fixed:'정액할인 적용', sur:'추가요금 포함', normal:'정상가' };
 
+function renderBreakList(segs){
+  const wrap = document.getElementById('breakList');
+  let html=''; let start=1;
+  segs.forEach((s,i)=>{
+    const end = start+s.months-1;
+    const col = TYPE_COLOR[s.type] || '#2050b5';
+    const desc = SEG_DESC[s.type] || '적용가';
+    html += '<div class="trow'+(s.type==='waiver'?' waiver':'')+'">';
+    html += '<div class="num" style="background:'+col+';">'+(i+1)+'</div>';
+    html += '<div class="body"><b>'+start+(s.months>1?'~'+end:'')+'회차 ('+s.months+'개월)</b><div class="sub">'+desc+' · '+fmt(s.fee)+'원/월</div></div>';
+    html += '<div class="amt">'+fmt(s.fee)+'원/월<span class="sc">소계 '+fmt(s.fee*s.months)+'원</span></div>';
+    html += '</div>';
+    start = end+1;
+  });
+  wrap.innerHTML = html;
+}
+
+function openModalForCase(id){
+  const segs = activeSegs(casesData[id]);
+  setTab(currentTab);
+  renderBreakList(segs);
   document.getElementById('modalOverlay').classList.add('show');
 }
 
