@@ -91,6 +91,36 @@
   .trow .num { width:22px; height:22px; border-radius:50%; background:#2050b5; color:#fff; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none; }
   .trow .body b { font-size:12.5px; }
   .trow .amt { margin-left:auto; text-align:right; font-size:13px; font-weight:800; }
+
+  /* 견적서 상세 모달 */
+  .qsectitle { font-size:14px; font-weight:800; color:#222; margin:6px 16px 10px; }
+  .qseg { margin:0 16px; padding:14px 0; border-bottom:1px dashed #e6e8ec; }
+  .qseg:last-child { border-bottom:none; }
+  .qseg .qtop { display:flex; align-items:baseline; }
+  .qseg .qper { font-size:13px; font-weight:700; color:#333; }
+  .qseg .qper small { font-size:11.5px; color:#9aa0a8; font-weight:600; margin-left:4px; }
+  .qseg .qfee { margin-left:auto; font-size:15px; font-weight:800; color:#1a1a1a; }
+  .qseg .qsub { display:flex; align-items:center; margin-top:6px; font-size:11.5px; color:#9aa0a8; }
+  .qseg .qsub .qsv { margin-left:auto; font-weight:700; }
+  .qhr { height:8px; background:#f2f3f5; margin:6px 0; }
+  .qcollapse .qchead { display:flex; align-items:center; padding:15px 16px; font-size:13.5px; font-weight:800; color:#222; cursor:pointer; }
+  .qcollapse .qcount { color:#f2730f; margin-left:6px; }
+  .qcollapse .qamt { margin-left:auto; font-size:14px; font-weight:800; color:#2050b5; }
+  .qcollapse .qarrow { margin-left:8px; color:#aaa; font-size:14px; transition:transform .2s; }
+  .qcollapse[data-open="1"] .qarrow { transform:rotate(180deg); }
+  .qcollapse .qcbody { display:none; padding:0 16px 14px; }
+  .qcollapse[data-open="1"] .qcbody { display:block; }
+  .qtags { display:flex; flex-wrap:wrap; gap:7px; }
+  .qtags .qtag { font-size:11.5px; font-weight:700; color:#4b5563; background:#f0f1f3; padding:7px 11px; border-radius:8px; }
+  .qtags .qtag::after { content:' ›'; color:#b7bdc7; }
+  .qnote { font-size:11px; color:#9aa0a8; margin-top:10px; }
+  .qspecial { margin:6px 16px 0; padding:14px; background:#eef2fd; border-radius:12px; font-size:12px; line-height:1.6; color:#3a4a63; }
+  .qspecial b { display:block; font-size:12.5px; color:#22345c; margin-bottom:6px; }
+  .qspecial ul { margin:6px 0 0; padding-left:16px; }
+  .qspecial li { margin-bottom:5px; }
+  .qfoot { position:sticky; bottom:0; background:#fff; padding:12px 16px calc(12px + env(safe-area-inset-bottom)); margin-top:16px; box-shadow:0 -2px 8px rgba(0,0,0,.05); }
+  .qavg { text-align:center; font-size:11.5px; color:#6b7688; margin-bottom:9px; }
+  .qcta { background:#2050b5; color:#fff; text-align:center; padding:14px; border-radius:12px; font-size:14px; font-weight:800; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -120,6 +150,34 @@
     <div id="mGraph"></div>
     <div class="breaktitle">구간별 상세</div>
     <div id="mBreak"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="qmodal">
+  <div class="sheet">
+    <div class="shead"><b id="qTitle">견적서</b><span class="x" id="qClose">✕</span></div>
+    <div class="mcase" id="qTagsTop"></div>
+    <div class="qsectitle">구간 별 요금</div>
+    <div id="qGraph"></div>
+    <div id="qSegs"></div>
+    <div class="qhr"></div>
+    <div class="qcollapse" data-open="0">
+      <div class="qchead">현금 지원금 합계<span class="qamt" id="qCashSum"></span><span class="qarrow">⌄</span></div>
+      <div class="qcbody"><div id="qCashBody"></div></div>
+    </div>
+    <div class="qhr"></div>
+    <div class="qcollapse" data-open="1">
+      <div class="qchead">추가혜택 <span class="qcount" id="qBenCount"></span><span class="qarrow">⌄</span></div>
+      <div class="qcbody">
+        <div class="qtags" id="qTags"></div>
+        <div class="qnote">ⓘ [추가 혜택]은 판매자에게 직접 지급받는 항목입니다.</div>
+      </div>
+    </div>
+    <div class="qspecial" id="qSpecial"></div>
+    <div class="qfoot">
+      <div class="qavg">평균 20분 내외로 답변하는 판매자입니다.</div>
+      <div class="qcta">채팅상담하기</div>
+    </div>
   </div>
 </div>
 
@@ -198,7 +256,7 @@ function cardHtml(o,i){
     +     grade
     +   '</div>'
     +   '<div class="obtnrow">'
-    +     '<div class="obtn quote">📄 견적</div>'
+    +     '<div class="obtn quote" data-idx="'+i+'">📄 견적</div>'
     +     '<div class="obtn chat">'+o.chatText+'</div>'
     +   '</div>'
     + '</div>';
@@ -275,11 +333,97 @@ function openModal(i){
 }
 
 document.getElementById('list').addEventListener('click', e=>{
+  const q = e.target.closest('.obtn.quote');
+  if(q){ openQuote(parseInt(q.dataset.idx)); return; }
   const col = e.target.closest('.ocol.left');
   if(col) openModal(parseInt(col.dataset.idx));
 });
 document.getElementById('mClose').addEventListener('click', ()=>document.getElementById('modal').classList.remove('show'));
 document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==='modal') e.currentTarget.classList.remove('show'); });
+
+/* ===== 견적서 상세 모달 ===== */
+const quoteData = {
+  total: 84,
+  segs: [
+    {label:'1~12회차', months:'12개월간', m:12, f:16140, sub:[{n:'{하위이름(선택)}', v:'-nn,nnn원'}]},
+    {label:'13~39회차', months:'27개월간', m:27, f:26140, sub:[{n:'{하위이름(선택)}', v:'-nn,nnn원'},{n:'{하위이름(선택)}', v:'+nn,nnn원'}]},
+    {label:'40회차', months:'1개월간', m:1, f:0, sub:[{n:'{하위이름(선택)}', v:'-nn,nnn원'}]},
+    {label:'41~84회차', months:'43개월간', m:44, f:26140, sub:[{n:'{하위이름(선택)}', v:'-nn,nnn원'}]}
+  ],
+  cashSum:'27+13만원',
+  cashBody:'현금지원금 27만원 + 추가지원 13만원 (지급보장)',
+  benefitCount:13,
+  benefits:['등록비 무료','설치비 무료','스타벅스 기프티콘','기타 혜택','우대갈비 5KG 세트'],
+  special:{
+    intro:'📌 유의사항 안내 (지원금 환수 관련)\n특약사항에 따라 아래 조건에 해당할 경우, 고객님에 지급된 지원금을 반환해야 합니다.',
+    items:[
+      '계약 시작 후 1년(12회차 납부 전) 이내 해지 시',
+      '계약 시작 후 1년(12회차 납부 전) 이내 5회 이상 요금 연체 시. 또한 계약 시작 후 1년 이내 해지될 경우 고객님께 지급된 지원금이 별도로 청구됩니다. (※ 위약금과는 별도로 발생합니다)',
+      '해당월에 대한 견적은 해당월 설치를 받으셔야 하며, 미설치 시에는 견적이 변경될 수 있습니다. (요금·혜택·그 외 정책 등)'
+    ]
+  }
+};
+
+function renderQuoteGraph(segs, total){
+  const w=340,h=190,pad=26,topPad=32,baseY=h-24;
+  const maxFee = Math.max(...segs.map(s=>s.f));
+  const scaleX=(w-pad*2)/total, scaleY=(baseY-topPad)/maxFee;
+  let x=0, path='', pts=[];
+  segs.forEach(s=>{
+    const x1=x, x2=x+s.m, y=baseY - s.f*scaleY;
+    path+=(path===''?'M':'L')+(pad+x1*scaleX).toFixed(1)+' '+y.toFixed(1)+' L '+(pad+x2*scaleX).toFixed(1)+' '+y.toFixed(1)+' ';
+    pts.push({x:pad+x1*scaleX, y, f:s.f});
+    x=x2;
+  });
+  let svg='<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="overflow:visible;">';
+  svg+='<path d="'+path+'" fill="none" stroke="#5b6bd6" stroke-width="2.5"/>';
+  const seen=new Set();
+  pts.forEach(p=>{
+    svg+='<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3.5" fill="#4453c4"/>';
+    if(!seen.has(p.f)){
+      seen.add(p.f);
+      const lx=Math.max(30, Math.min(w-30, p.x));
+      svg+='<rect x="'+(lx-32).toFixed(1)+'" y="'+(p.y-23).toFixed(1)+'" width="64" height="17" rx="5" fill="#4453c4"/>';
+      svg+='<text x="'+lx.toFixed(1)+'" y="'+(p.y-11).toFixed(1)+'" font-size="9.5" fill="#fff" font-weight="700" text-anchor="middle">월 '+fmt(p.f)+'원</text>';
+    }
+  });
+  svg+='<text x="'+pad+'" y="'+(h-6)+'" font-size="9" fill="#aaa">1회차</text>';
+  svg+='<text x="'+(w-pad-32)+'" y="'+(h-6)+'" font-size="9" fill="#aaa">'+total+'회차</text>';
+  svg+='</svg>';
+  return '<div class="graphbox" style="border-color:#e3e6f5;background:#f6f7fd;margin:0 16px;">'+svg+'</div>';
+}
+
+function renderQuoteSegs(segs){
+  let start=1;
+  return segs.map(s=>{
+    const end=start+s.m-1;
+    const range = s.m>1 ? start+'~'+end+'회차' : start+'회차';
+    start=end+1;
+    return '<div class="qseg"><div class="qtop"><span class="qper">'+range+' <small>('+s.m+'개월간)</small></span><span class="qfee">월 '+fmt(s.f)+'원</span></div>'
+         + '<div class="qsub">ㄴ '+segDesc(s.t)+'<span class="qsv"></span></div></div>';
+  }).join('');
+}
+
+function openQuote(i){
+  const o=offers[i];
+  document.getElementById('qTitle').textContent = o.seller+' 견적서';
+  document.getElementById('qTagsTop').innerHTML = (o.tags||[]).map(t=>'<span class="mtag">'+t+'</span>').join('');
+  document.getElementById('qGraph').innerHTML = renderQuoteGraph(o.segs, TOTAL_MONTHS);
+  document.getElementById('qSegs').innerHTML = renderQuoteSegs(o.segs);
+  document.getElementById('qCashSum').textContent = o.cash+'만원';
+  document.getElementById('qCashBody').textContent = '현금지원금 '+o.cash+'만원 · 지급보장';
+  document.getElementById('qBenCount').textContent = quoteData.benefitCount+'종';
+  document.getElementById('qTags').innerHTML = quoteData.benefits.map(b=>'<span class="qtag">'+b+'</span>').join('');
+  const sp=quoteData.special;
+  document.getElementById('qSpecial').innerHTML = '<b>특약사항</b>'+sp.intro.replace(/\n/g,'<br>')+'<ul>'+sp.items.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
+  document.getElementById('qmodal').classList.add('show');
+}
+
+document.querySelectorAll('.qcollapse .qchead').forEach(head=>{
+  head.addEventListener('click', ()=>{ const c=head.parentElement; c.dataset.open = c.dataset.open==='1'?'0':'1'; });
+});
+document.getElementById('qClose').addEventListener('click', ()=>document.getElementById('qmodal').classList.remove('show'));
+document.getElementById('qmodal').addEventListener('click', e=>{ if(e.target.id==='qmodal') e.currentTarget.classList.remove('show'); });
 </script>
 </body>
 </html>
