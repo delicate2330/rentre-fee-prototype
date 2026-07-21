@@ -84,6 +84,7 @@
   .graphbox .gtitle span { font-size:10.5px; color:#aaa; font-weight:400; }
   .mcase { display:flex; flex-wrap:wrap; gap:6px; margin:0 16px 12px; }
   .mtag { font-size:11.5px; font-weight:800; color:#2050b5; background:#eaf0fd; padding:5px 11px; border-radius:20px; }
+  .mdesc { margin:0 16px 14px; padding:11px 12px; background:#f5f7fb; border-radius:10px; font-size:12px; line-height:1.55; color:#4b5563; }
   .breaktitle { font-size:12.5px; font-weight:800; color:#333; margin:18px 16px 8px; }
   .trow .body .sub { font-size:11px; color:#9aa0a8; margin-top:2px; }
   .trow { display:flex; align-items:center; gap:10px; margin:0 16px 10px; padding:12px; border-radius:10px; background:#fafbfc; }
@@ -115,6 +116,7 @@
   <div class="sheet">
     <div class="shead"><b id="mTitle">월 요금 상세</b><span class="x" id="mClose">✕</span></div>
     <div class="mcase" id="mCase"></div>
+    <div class="mdesc" id="mDesc"></div>
     <div id="mGraph"></div>
     <div class="breaktitle">구간별 상세</div>
     <div id="mBreak"></div>
@@ -130,6 +132,7 @@ const offers = [
     grade:{ text:'안심구독', color:'blue' },
     topTag:'최대혜택가',
     tags:['신규 프로모션 할인'],
+    desc:'신규 가입 프로모션이에요. 첫 12개월은 특가 19,000원으로 이용하고, 13개월부터 정상가 28,400원이 적용돼요.',
     segs:[{m:12,f:19000,t:'promo'},{m:24,f:28400,t:'normal'}],
     chatText:'렌트리와 채팅상담'
   },
@@ -139,6 +142,7 @@ const offers = [
     seller:'김상식 팀장', rating:'5.0', contracts:'계약 4,346건',
     grade:{ text:'공식', color:'blue' },
     tags:['정액할인','1년 12만원'],
+    desc:'1년간 매월 일정 금액을 깎아주는 정액할인이에요. 12개월 후에는 정상가로 전환돼요.',
     segs:[{m:12,f:24000,t:'fixed'},{m:24,f:34000,t:'normal'}],
     chatText:'채팅상담하기'
   },
@@ -148,6 +152,7 @@ const offers = [
     seller:'한은global 매니저', rating:'5.0', contracts:'계약 4,346건',
     grade:{ text:'우수', color:'green' },
     tags:['반값할인'],
+    desc:'첫 12개월은 반값(50%)으로 이용하고, 이후 정상가가 적용되는 반값할인이에요.',
     segs:[{m:12,f:24000,t:'half'},{m:24,f:48000,t:'normal'}],
     chatText:'채팅상담하기'
   },
@@ -157,6 +162,7 @@ const offers = [
     seller:'박유신 프로', rating:'5.0', contracts:'계약 4,346건',
     grade:null,
     tags:['반값할인','단계 인상'],
+    desc:'첫 12개월은 반값으로 시작해서, 12개월 단위로 요금이 단계적으로 올라 정상가에 도달해요.',
     segs:[{m:12,f:24000,t:'half'},{m:12,f:36000,t:'step'},{m:12,f:48000,t:'normal'}],
     chatText:'채팅상담하기'
   }
@@ -175,7 +181,7 @@ function cardHtml(o,i){
     +   '</div>'
     +   '<div class="obody">'
     +     '<div class="ocol left" data-idx="'+i+'">'
-    +       '<span class="graphico"><svg width="15" height="15" viewBox="0 0 18 18"><polyline points="2,12 6,8 10,10 16,4" fill="none" stroke="#2050b5" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+    +       '<span class="graphico"><svg width="15" height="15" viewBox="0 0 18 18"><circle cx="8" cy="8" r="5" fill="none" stroke="#2050b5" stroke-width="1.8"/><line x1="11.7" y1="11.7" x2="16" y2="16" stroke="#2050b5" stroke-width="1.8" stroke-linecap="round"/></svg></span>'
     +       '<div class="collabel">첫달 요금</div>'
     +       '<div class="colnum">'+o.fee+'<span>원</span></div>'
     +     '</div>'
@@ -260,6 +266,9 @@ function openModal(i){
   const o = offers[i];
   document.getElementById('mTitle').textContent = o.seller+' · 요금 상세';
   document.getElementById('mCase').innerHTML = (o.tags||[]).map(t=>'<span class="mtag">'+t+'</span>').join('');
+  const dEl = document.getElementById('mDesc');
+  dEl.textContent = o.desc || '';
+  dEl.style.display = o.desc ? 'block' : 'none';
   document.getElementById('mGraph').innerHTML = renderGraph(o.segs);
   document.getElementById('mBreak').innerHTML = renderBreakList(o.segs);
   document.getElementById('modal').classList.add('show');
