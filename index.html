@@ -32,7 +32,8 @@
   .feewrap:active { background:#eef0f3; }
   .feewrap { border:1px solid #e5e7eb; }
   .feewrap .lbl { font-size:12px; color:#555; font-weight:600; display:flex; align-items:center; gap:4px; }
-  .feewrap .lbl .detailbtn { margin-left:auto; font-size:11px; font-weight:700; color:#2050b5; background:#eaf0fd; padding:4px 10px; border-radius:20px; }
+  .feewrap .lbl .detailbtn { margin-left:auto; display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:#2050b5; background:#fff; border:1px solid #dbe2f0; padding:4px 6px 4px 11px; border-radius:20px; box-shadow:0 1px 2px rgba(20,40,90,.06); letter-spacing:-.2px; }
+  .feewrap .lbl .detailbtn .chev { display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px; border-radius:50%; background:#eef2fb; font-size:10px; line-height:1; }
   .pillrow { display:flex; gap:5px; margin:6px 0 4px; flex-wrap:wrap; }
   .pill { font-size:10.5px; font-weight:700; padding:3px 7px; border-radius:6px; }
   .pill.discount { background:#e7edfb; color:#2050b5; }
@@ -143,14 +144,13 @@
   <div class="qcard">
     <div class="brand"><b>코웨이 아이콘2 냉온정</b><span>브랜드인증</span></div>
     <div class="feewrap" id="feeTrigger">
-      <div class="lbl"><span>첫달 월요금</span><span class="detailbtn">자세히 보기 ›</span></div>
+      <div class="lbl"><span>첫달 월요금</span><span class="detailbtn">자세히 보기<span class="chev">›</span></span></div>
       <div class="benefitwrap" id="benefitWrap">
         <div class="benefitrow" id="benefitRow"></div>
         <div class="benefitfade" id="benefitFade"></div>
       </div>
       <div class="benefithint" id="benefitHint">← 밀어서 전체 혜택 보기</div>
       <div class="feenum"><span class="now" id="feeNow">28,400원</span><span class="strike" id="feeStrike"></span></div>
-      <div class="feenet" id="feeNet"></div>
     </div>
     <div class="cashrow">
       <div class="l">현금지원금 · 지급보장</div>
@@ -242,11 +242,12 @@ function renderBenefits(c){
   const row = document.getElementById('benefitRow');
   let chips = c.badges.map(chipHtml).join('');
   if(cardOn) chips += chipHtml({kind:'card', text:'−2,000원'});
-  row.innerHTML = chips || '<span class="bchip half">정상가 · 적용 혜택 없음</span>';
+  row.innerHTML = chips;
+  document.getElementById('benefitWrap').style.display = chips ? 'block' : 'none';
   // 칩이 넘치면(할인이 많으면) 슬라이드 안내·페이드 표시
   const overflow = row.scrollWidth > row.clientWidth + 2;
-  document.getElementById('benefitHint').classList.toggle('show', overflow);
-  document.getElementById('benefitFade').classList.toggle('show', overflow);
+  document.getElementById('benefitHint').classList.toggle('show', !!chips && overflow);
+  document.getElementById('benefitFade').classList.toggle('show', !!chips && overflow);
   row.scrollLeft = 0;
 }
 
@@ -267,9 +268,6 @@ function applyCase(id){
   renderBenefits(c);
   document.getElementById('feeNow').textContent = fmt(segs[0].fee)+'원';
   document.getElementById('feeStrike').textContent = (c.strike && segs[0].fee!==c.strike) ? fmt(c.strike)+'원' : '';
-  const netEl = document.getElementById('feeNet');
-  if(c.netNote){ netEl.textContent = c.netNote; netEl.style.display='block'; }
-  else { netEl.style.display='none'; }
 
   if(document.getElementById('modalOverlay').classList.contains('show')){
     openModalForCase(id);
